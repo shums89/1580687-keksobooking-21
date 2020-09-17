@@ -69,7 +69,7 @@
     };
   }
 
-  function setPhotoSrc(fileChooser, element) {
+  function getPhotoSrc(fileChooser, callback) {
     const file = fileChooser.files[0];
     const fileName = file.name.toLowerCase();
 
@@ -82,7 +82,7 @@
 
       reader.readAsDataURL(file);
       reader.addEventListener(`load`, function () {
-        element.src = reader.result;
+        callback(reader.result);
       });
     }
   }
@@ -96,7 +96,7 @@
     removeElements,
     checkInterval,
     debounce,
-    setPhotoSrc
+    getPhotoSrc
   };
 
 })();

@@ -2,6 +2,8 @@
 
 (function () {
 
+  const DEFAULT_COORDINATES_PIN_MAIN = `left: 570px; top: 375px;`;
+
   const map = document.querySelector(`.map`);
   const mapPins = map.querySelector(`.map__pins`);
   const mapPinMain = mapPins.querySelector(`.map__pin--main`);
@@ -29,7 +31,7 @@
     window.pin.removePins();
     window.card.removeCards();
 
-    mapPinMain.style = `left: 570px; top: 375px;`;
+    mapPinMain.style = DEFAULT_COORDINATES_PIN_MAIN;
     window.form.setAdFormAddress(getCoordinats(true));
 
     mapPins.removeEventListener(`click`, onMapPinsClick);

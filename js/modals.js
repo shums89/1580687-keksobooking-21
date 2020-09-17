@@ -2,8 +2,8 @@
 
 (function () {
 
-  function showDialogMessage(nameElement, message, nameOperation) {
-    const template = document.querySelector(`#${nameElement}`);
+  function showDialogMessage(dialog, message, callback) {
+    const template = document.querySelector(`#${dialog}`);
 
     function closeDialogActive() {
       window.utils.removeElements(document.body.querySelectorAll(`.user-message-active`));
@@ -15,22 +15,20 @@
     function onDocumentClick(evt) {
       closeDialogActive();
 
-      if (nameOperation && evt.target.matches(`button`)) {
-        nameOperation();
+      if (callback && evt.target.matches(`button`)) {
+        callback();
       }
     }
 
     function onDocumentKeydown(evt) {
-      if (evt.key === `Escape` || evt.key === `Enter` || evt.key === `F5`) {
+      if (evt.key === `Escape`) {
         closeDialogActive();
-      } else {
-        evt.preventDefault();
       }
     }
 
-    const element = template.content.querySelector(`.${nameElement}`).cloneNode(true);
+    const element = template.content.querySelector(`.${dialog}`).cloneNode(true);
 
-    element.querySelector(`.${nameElement}__message`).textContent = message || nameElement;
+    element.querySelector(`.${dialog}__message`).textContent = message || dialog;
     element.classList.add(`user-message-active`);
 
     document.body.prepend(element);

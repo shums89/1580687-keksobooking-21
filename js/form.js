@@ -2,6 +2,8 @@
 
 (function () {
 
+  const DEFAULT_PHOTO = `img/muffin-grey.svg`;
+
   const CAPACITY_VALIDITY = {
     '1': {
       values: [`1`],
@@ -22,50 +24,50 @@
   };
 
   const adForm = document.querySelector(`.ad-form`);
-  const adFormSubmit = adForm.querySelector(`.ad-form__submit`);
-  const adFormReset = adForm.querySelector(`.ad-form__reset`);
-  const adFormFieldsets = adForm.querySelectorAll(`fieldset`);
-  const adFormType = adForm.querySelector(`#type`);
-  const adFormPrice = adForm.querySelector(`#price`);
-  const adFormTimein = adForm.querySelector(`#timein`);
-  const adFormTimeout = adForm.querySelector(`#timeout`);
-  const adFormRoomNumber = adForm.querySelector(`#room_number`);
-  const adFormCapacity = adForm.querySelector(`#capacity`);
-  const adFormHeaderUploadInput = adForm.querySelector(`.ad-form-header__upload input[type=file]`);
-  const adFormHeaderUploadPreview = adForm.querySelector(`.ad-form-header__upload .ad-form-header__preview img`);
-  const adFormUploadInput = adForm.querySelector(`.ad-form__upload input[type=file]`);
-  const adFormUploadPreview = adForm.querySelector(`.ad-form__photo`);
+  const buttonSubmit = adForm.querySelector(`.ad-form__submit`);
+  const buttonReset = adForm.querySelector(`.ad-form__reset`);
+  const fieldsets = adForm.querySelectorAll(`fieldset`);
+  const type = adForm.querySelector(`#type`);
+  const price = adForm.querySelector(`#price`);
+  const timein = adForm.querySelector(`#timein`);
+  const timeout = adForm.querySelector(`#timeout`);
+  const roomNumber = adForm.querySelector(`#room_number`);
+  const capacity = adForm.querySelector(`#capacity`);
+  const avatarUploadInput = adForm.querySelector(`.ad-form-header__upload input[type=file]`);
+  const avatarUploadPreview = adForm.querySelector(`.ad-form-header__upload .ad-form-header__preview img`);
+  const housingUploadInput = adForm.querySelector(`.ad-form__upload input[type=file]`);
+  const housingUploadPreview = adForm.querySelector(`.ad-form__photo`);
 
   function checkType() {
-    const typeValue = adFormType.value;
+    const typeValue = type.value;
     const newValue = window.data.TYPE_HOUSING[typeValue].minPrice;
 
-    adFormPrice.min = newValue;
-    adFormPrice.placeholder = newValue;
+    price.min = newValue;
+    price.placeholder = newValue;
   }
 
   function checkTime() {
-    const textValidityCapacity = (adFormTimeout.value === adFormTimein.value) ? `` : `Время выезда должно быть до ${adFormTimein.value}`;
+    const textValidityCapacity = (timeout.value === timein.value) ? `` : `Время выезда должно быть до ${timein.value}`;
 
-    adFormTimeout.setCustomValidity(textValidityCapacity);
-    adFormTimeout.reportValidity();
+    timeout.setCustomValidity(textValidityCapacity);
+    timeout.reportValidity();
   }
 
   function checkRoomNumber() {
-    const roomNumberValue = adFormRoomNumber.value;
-    const capacityValue = adFormCapacity.value;
+    const roomNumberValue = roomNumber.value;
+    const capacityValue = capacity.value;
 
     const textValidityCapacity = (CAPACITY_VALIDITY[roomNumberValue].values.includes(capacityValue)) ? `` : CAPACITY_VALIDITY[roomNumberValue].textError;
 
-    adFormCapacity.setCustomValidity(textValidityCapacity);
-    adFormCapacity.reportValidity();
+    capacity.setCustomValidity(textValidityCapacity);
+    capacity.reportValidity();
   }
 
   function resetAdForm() {
-    adFormPrice.min = 0;
-    adFormPrice.placeholder = 0;
-    adFormHeaderUploadPreview.src = `img/muffin-grey.svg`;
-    adFormUploadPreview.innerHTML = ``;
+    price.min = 0;
+    price.placeholder = 0;
+    avatarUploadPreview.src = DEFAULT_PHOTO;
+    housingUploadPreview.innerHTML = ``;
 
     adForm.reset();
     window.map.setMapInactiveMode();
@@ -85,7 +87,7 @@
     window.network.upload(new FormData(adForm), informSuccessUpload, unloadAdForm);
   }
 
-  function onAdFormSubmitClick(evt) {
+  function onButtonSubmitClick(evt) {
     checkType();
     checkTime();
     checkRoomNumber();
@@ -96,27 +98,27 @@
     }
   }
 
-  function onAdFormResetClick(evt) {
+  function onButtonResetClick(evt) {
     if (evt.button === 0) {
       evt.preventDefault();
       resetAdForm();
     }
   }
 
-  function onHeaderUploadChange() {
-    window.utils.setPhotoSrc(adFormHeaderUploadInput, adFormHeaderUploadPreview);
+  function renderAvatarUploadPreview(src) {
+    avatarUploadPreview.src = src;
   }
 
-  function onUploadChange() {
-    const photoElement = document.createElement(`img`);
-    photoElement.src = `#`;
-    photoElement.alt = `Фотография жилья`;
-    photoElement.style = `width: 100%; height: 100%; object-fit: contain`;
+  function onAvatarUploadChange() {
+    window.utils.getPhotoSrc(avatarUploadInput, renderAvatarUploadPreview);
+  }
 
-    window.utils.setPhotoSrc(adFormUploadInput, photoElement);
+  function renderHousingUploadPreview(src) {
+    housingUploadPreview.innerHTML = `<img src="${src}" alt="Фотография жилья" style="width: 100%; height: 100%; object-fit: contain">`;
+  }
 
-    adFormUploadPreview.innerHTML = ``;
-    adFormUploadPreview.appendChild(photoElement);
+  function onHousingUploadChange() {
+    window.utils.getPhotoSrc(housingUploadInput, renderHousingUploadPreview);
   }
 
   function setAdFormAddress(coordinats) {
@@ -125,22 +127,22 @@
 
   function setFormInactiveMode() {
     adForm.classList.add(`ad-form--disabled`);
-    window.utils.setDisabled(adFormFieldsets);
+    window.utils.setDisabled(fieldsets);
 
-    adFormSubmit.removeEventListener(`click`, onAdFormSubmitClick);
-    adFormReset.removeEventListener(`click`, onAdFormResetClick);
-    adFormHeaderUploadInput.removeEventListener(`change`, onHeaderUploadChange);
-    adFormUploadInput.removeEventListener(`change`, onUploadChange);
+    buttonSubmit.removeEventListener(`click`, onButtonSubmitClick);
+    buttonReset.removeEventListener(`click`, onButtonResetClick);
+    avatarUploadInput.removeEventListener(`change`, onAvatarUploadChange);
+    housingUploadInput.removeEventListener(`change`, onHousingUploadChange);
   }
 
   function setFormActiveMode() {
     adForm.classList.remove(`ad-form--disabled`);
-    window.utils.setDisabled(adFormFieldsets, false);
+    window.utils.setDisabled(fieldsets, false);
 
-    adFormSubmit.addEventListener(`click`, onAdFormSubmitClick);
-    adFormReset.addEventListener(`click`, onAdFormResetClick);
-    adFormHeaderUploadInput.addEventListener(`change`, onHeaderUploadChange);
-    adFormUploadInput.addEventListener(`change`, onUploadChange);
+    buttonSubmit.addEventListener(`click`, onButtonSubmitClick);
+    buttonReset.addEventListener(`click`, onButtonResetClick);
+    avatarUploadInput.addEventListener(`change`, onAvatarUploadChange);
+    housingUploadInput.addEventListener(`change`, onHousingUploadChange);
   }
 
   window.form = {

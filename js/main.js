@@ -13,6 +13,10 @@
   }
 
   function onMapPinMainMousedown(evt) {
+    if (evt.button !== 0) {
+      return;
+    }
+
     evt.preventDefault();
 
     let startCoords = {
@@ -45,7 +49,6 @@
       document.removeEventListener(`mousemove`, onMouseMove);
       document.removeEventListener(`mouseup`, onMouseUp);
 
-      // Установить активный режим
       if (map.matches(`.map--faded`)) {
         window.data.loadAds();
       }
@@ -58,7 +61,6 @@
     document.addEventListener(`mouseup`, onMouseUp);
   }
 
-  // Установить неактивный режим
   window.map.setMapInactiveMode();
   window.form.setFormInactiveMode();
 
