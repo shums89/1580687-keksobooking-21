@@ -99,23 +99,13 @@ function createAdsFragment(ads) {
 }
 
 // Конвертация англоязычного типа жилья в русскоязычный
-function convertTypeHouse(typeEng) {
-  let typeRus = ``;
-
-  switch (typeEng) {
-    case `palace`:
-      typeRus = `Дворец`;
-      break;
-    case `flat`:
-      typeRus = `Квартира`;
-      break;
-    case `house`:
-      typeRus = `Дом`;
-      break;
-    case `bungalow`:
-      typeRus = `Бунгало`;
-  }
-  return typeRus;
+function convertTypeHouse(english) {
+  return {
+    'palace': `Дворец`,
+    'flat': `Квартира`,
+    'house': `Дом`,
+    'bungalow': `Бунгало`
+  }[english];
 }
 
 // Получение списка доступных удобств в карточке объявления
