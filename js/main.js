@@ -15,14 +15,17 @@ const ADS_DATA = {
   LOCATION_Y: {MIN: 130, MAX: 630} // координата y метки на карте от 130 до 630
 };
 
+// Генерация случайного числа
 function getRandomInteger(min, max) {
   return Math.floor(min + Math.random() * (max + 1 - min));
 }
 
+// Получение случайного элемента массива
 function getRandomElement(arr) {
   return arr[getRandomInteger(0, arr.length - 1)];
 }
 
+// Создание массива уникальных элементов
 function createUniqueList(arr) {
   const newSet = new Set();
 
@@ -32,6 +35,7 @@ function createUniqueList(arr) {
   return [...newSet];
 }
 
+// Создание объявления
 function createAd(index, adsData) {
   const ad = {
     author: {
@@ -59,6 +63,7 @@ function createAd(index, adsData) {
   return ad;
 }
 
+// Получение массива объявлений
 function getAds(adsData = ADS_DATA) {
   const ads = [];
 
@@ -68,7 +73,8 @@ function getAds(adsData = ADS_DATA) {
   return ads;
 }
 
-function createAdFragment(ad, adsTemplate, adsData = ADS_DATA) {
+// Создание DOM-элемент для Фрагмента объявлений
+function createElementAdsFragment(ad, adsTemplate, adsData = ADS_DATA) {
   const adElement = adsTemplate.cloneNode(true);
 
   adElement.style = `left: ${ad.location.x - adsData.TAG_SIZE.WIDTH / 2}px; top: ${ad.location.y - adsData.TAG_SIZE.HEIGHT}px;`;
@@ -80,20 +86,22 @@ function createAdFragment(ad, adsTemplate, adsData = ADS_DATA) {
   return adElement;
 }
 
-function getAdsFragment(ads) {
+// Создание Фрагмента объявлений
+function createAdsFragment(ads) {
   const adsTemplate = document.querySelector(`#pin`).content.querySelector(`.map__pin`);
   const newFragment = document.createDocumentFragment();
 
   ads.forEach(function (ad) {
-    newFragment.appendChild(createAdFragment(ad, adsTemplate));
+    newFragment.appendChild(createElementAdsFragment(ad, adsTemplate));
   });
 
   return newFragment;
 }
 
-// Функция для конвертации англоязычного типа жилья в русскоязычный
+// Конвертация англоязычного типа жилья в русскоязычный
 function convertTypeHouse(typeEng) {
   let typeRus = ``;
+
   switch (typeEng) {
     case `palace`:
       typeRus = `Дворец`;
@@ -110,37 +118,12 @@ function convertTypeHouse(typeEng) {
   return typeRus;
 }
 
-function createCardAdPhotoFragment(ad, cardAdElementPhoto) {
-  const cardAdElementPhotoTemplate = cardAdElementPhoto;
-  const newFragmentPhoto = document.createDocumentFragment();
-
-  cardAdElementPhotoTemplate.src = ad.offer.photos[0];
-  for (let i = 1; i < ad.offer.photos.length; i++) {
-    let newCardAdElementPhoto = cardAdElementPhotoTemplate.cloneNode(true);
-    newCardAdElementPhoto.src = ad.offer.photos[i];
-    newFragmentPhoto.appendChild(newCardAdElementPhoto);
-  }
-
-  return newFragmentPhoto;
-}
-
-function createCardAdFragment(ad, cardAdsTemplate) {
-  const cardAdElement = cardAdsTemplate.cloneNode(true);
-
-  cardAdElement.querySelector(`.popup__avatar`).src = ad.author.avatar;
-  cardAdElement.querySelector(`.popup__title`).textContent = ad.offer.title;
-  cardAdElement.querySelector(`.popup__text--address`).textContent = ad.offer.address;
-  cardAdElement.querySelector(`.popup__text--price`).textContent = `${ad.offer.price}₽/ночь`;
-  cardAdElement.querySelector(`.popup__type`).textContent = convertTypeHouse(ad.offer.type);
-  cardAdElement.querySelector(`.popup__text--capacity`).textContent = `${ad.offer.rooms} комнаты для ${ad.offer.guests} гостей`;
-  cardAdElement.querySelector(`.popup__text--time`).textContent = `Заезд после ${ad.offer.checkin}, выезд до ${ad.offer.checkout}`;
-  cardAdElement.querySelector(`.popup__description`).textContent = ad.offer.description;
-
-  let cardAdElementChildren = cardAdElement.querySelector(`.popup__features`).querySelectorAll(`.popup__feature`);
-
+// Получение списка доступных удобств в карточке объявления
+function getCardAdFeatures(ad, cardAdElementFeatures) {
   let arrFeatures = ad.offer.features;
-  for (let i = cardAdElementChildren.length - 1; i >= 0; i--) {
-    const child = cardAdElementChildren[i];
+
+  for (let i = cardAdElementFeatures.length - 1; i >= 0; i--) {
+    const child = cardAdElementFeatures[i];
     let isDelete = true;
 
     for (let j = 0; j < arrFeatures.length; j++) {
@@ -155,26 +138,69 @@ function createCardAdFragment(ad, cardAdsTemplate) {
       child.remove();
     }
   }
+}
 
-  cardAdElementChildren = cardAdElement.querySelector(`.popup__photos`);
-  const cardAdElementPhoto = cardAdElementChildren.querySelector(`.popup__photo`);
+// Получение фотографий в карточке объявления
+function getCardAdPhotos(ad, cardAdElementPhotos) {
+  const cardAdElementPhoto = cardAdElementPhotos.querySelector(`.popup__photo`);
 
   if (!ad.offer.photos.length) {
     cardAdElementPhoto.remove();
   } else if (ad.offer.photos.length === 1) {
     cardAdElementPhoto.src = ad.offer.photos[0];
   } else {
-    cardAdElementChildren.appendChild(createCardAdPhotoFragment(ad, cardAdElementPhoto));
+    cardAdElementPhoto.src = ad.offer.photos[0];
+
+    for (let i = 1; i < ad.offer.photos.length; i++) {
+      const newCardAdElementPhoto = cardAdElementPhoto.cloneNode(true);
+      newCardAdElementPhoto.src = ad.offer.photos[i];
+
+      cardAdElementPhotos.appendChild(newCardAdElementPhoto);
+    }
   }
+}
+
+// Склонение существительных
+function getEnding(number, words) {
+  const cases = [2, 0, 1, 1, 1, 2];
+  return words[(number % 100 > 4 && number % 100 < 20) ? 2 : cases[(number % 10 < 5) ? number % 10 : 5]];
+}
+
+// Вывод количества комнат и гостей
+function getTextRoomsAndGuests(ad) {
+  let str = `${ad.offer.rooms} ${getEnding(ad.offer.rooms, [`комната`, `комнаты`, `комнат`])} `;
+  str += (ad.offer.guests) ? `для ${ad.offer.guests} ${getEnding(ad.offer.guests, [`гостя`, `гостей`, `гостей`])}` : `без гостей`;
+  return str;
+}
+
+// Создание DOM-элемент для Фрагмента карточки объявления
+function createElementCardAdFragment(ad, cardAdsTemplate) {
+  const cardAdElement = cardAdsTemplate.cloneNode(true);
+
+  cardAdElement.querySelector(`.popup__avatar`).src = ad.author.avatar;
+  cardAdElement.querySelector(`.popup__title`).textContent = ad.offer.title;
+  cardAdElement.querySelector(`.popup__text--address`).textContent = ad.offer.address;
+  cardAdElement.querySelector(`.popup__text--price`).textContent = `${ad.offer.price}₽/ночь`;
+  cardAdElement.querySelector(`.popup__type`).textContent = convertTypeHouse(ad.offer.type);
+  cardAdElement.querySelector(`.popup__text--capacity`).textContent = getTextRoomsAndGuests(ad);
+  cardAdElement.querySelector(`.popup__text--time`).textContent = `Заезд после ${ad.offer.checkin}, выезд до ${ad.offer.checkout}`;
+  cardAdElement.querySelector(`.popup__description`).textContent = ad.offer.description;
+
+  // Изменение списка доступных удобств в карточке объявления
+  getCardAdFeatures(ad, cardAdElement.querySelector(`.popup__features`).querySelectorAll(`.popup__feature`));
+
+  // Вывод всех фотографий из списка photos или удаление DOM-элемента, если нет фотографий
+  getCardAdPhotos(ad, cardAdElement.querySelector(`.popup__photos`));
 
   return cardAdElement;
 }
 
-function getCardAdFragment(ad) {
+// Создание Фрагмента карточки объявления
+function createCardAdFragment(ad) {
   const cardAdsTemplate = document.querySelector(`#card`).content.querySelector(`.map__card`);
   const newFragment = document.createDocumentFragment();
 
-  newFragment.appendChild(createCardAdFragment(ad, cardAdsTemplate));
+  newFragment.appendChild(createElementCardAdFragment(ad, cardAdsTemplate));
   return newFragment;
 }
 
@@ -182,14 +208,17 @@ function main() {
   const map = document.querySelector(`.map`);
   map.classList.remove(`map--faded`);
 
+  // Генерация массива объявлений
   const ads = getAds();
 
   const adsListElement = map.querySelector(`.map__pins`);
 
-  const adsFragment = getAdsFragment(ads);
+  // Добавление объявлений на карту
+  const adsFragment = createAdsFragment(ads);
   adsListElement.appendChild(adsFragment);
 
-  const cadrAdFragment = getCardAdFragment(ads[0]);
+  // Добавление карточки первого объявления
+  const cadrAdFragment = createCardAdFragment(ads[0]);
   adsListElement.after(cadrAdFragment);
 }
 
