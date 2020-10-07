@@ -26,80 +26,81 @@ function getRandomElement(arr) {
 }
 
 // Получение нового массива
-function getNewList(arr) {
+function getCorrectOrderList(arr) {
   return arr.filter(() => getRandomInteger(0, 1));
 }
 
-// Создание объявления
-function createAd(index, adsData) {
-  const ad = {
+// Создание похожего объявления
+function createAd(index) {
+  const locationX = getRandomInteger(ADS_DATA.LOCATION_X.MIN + ADS_DATA.TAG_SIZE.WIDTH / 2, ADS_DATA.LOCATION_X.MAX - ADS_DATA.TAG_SIZE.WIDTH / 2);
+  const locationY = getRandomInteger(ADS_DATA.LOCATION_Y.MIN + ADS_DATA.TAG_SIZE.HEIGHT, ADS_DATA.LOCATION_Y.MAX + ADS_DATA.TAG_SIZE.HEIGHT);
+
+  return {
     author: {
       avatar: `img/avatars/user0${index + 1}.png`,
     },
     offer: {
       title: `Заголовок ${index + 1}`,
-      price: getRandomInteger(adsData.PRICE.MIN, adsData.PRICE.MAX),
-      type: getRandomElement(adsData.TYPE),
-      rooms: getRandomInteger(adsData.ROOMS.MIN, adsData.ROOMS.MAX),
-      guests: getRandomInteger(adsData.GUESTS.MIN, adsData.GUESTS.MAX),
-      checkin: getRandomElement(adsData.CHECKIN),
-      checkout: getRandomElement(adsData.CHECKOUT),
-      features: getNewList(adsData.FEATURES),
+      address: `${locationX}, ${locationY}`,
+      price: getRandomInteger(ADS_DATA.PRICE.MIN, ADS_DATA.PRICE.MAX),
+      type: getRandomElement(ADS_DATA.TYPE),
+      rooms: getRandomInteger(ADS_DATA.ROOMS.MIN, ADS_DATA.ROOMS.MAX),
+      guests: getRandomInteger(ADS_DATA.GUESTS.MIN, ADS_DATA.GUESTS.MAX),
+      checkin: getRandomElement(ADS_DATA.CHECKIN),
+      checkout: getRandomElement(ADS_DATA.CHECKOUT),
+      features: getCorrectOrderList(ADS_DATA.FEATURES),
       description: `Описание ${index + 1}`,
-      photos: getNewList(adsData.PHOTOS)
+      photos: getCorrectOrderList(ADS_DATA.PHOTOS)
     },
     location: {
-      x: getRandomInteger(adsData.LOCATION_X.MIN + adsData.TAG_SIZE.WIDTH / 2, adsData.LOCATION_X.MAX - adsData.TAG_SIZE.WIDTH / 2),
-      y: getRandomInteger(adsData.LOCATION_Y.MIN + adsData.TAG_SIZE.HEIGHT, adsData.LOCATION_Y.MAX + adsData.TAG_SIZE.HEIGHT)
+      x: locationX,
+      y: locationY
     }
   };
-  ad.offer.address = `${ad.location.x}, ${ad.location.y}`;
-
-  return ad;
 }
 
-// Получение массива объявлений
-function getAds(adsData = ADS_DATA) {
+// Получение массива похожих объявлений
+function getAds() {
   const ads = [];
 
-  for (let i = 0; i < adsData.NUMBER_OF_ADS; i++) {
-    ads.push(createAd(i, adsData));
+  for (let i = 0; i < ADS_DATA.NUMBER_OF_ADS; i++) {
+    ads.push(createAd(i));
   }
+
   return ads;
 }
 
-// Создание DOM-элемент для Фрагмента объявлений
-function createElementAdsFragment(ad, adsTemplate, adsData = ADS_DATA) {
-  const adElement = adsTemplate.cloneNode(true);
+// Создание DOM-элемента для Фрагмента похожего объявления
+function createMapPinFragmentElement(ad) {
+  const mapPinElement = mapPinTemplate.cloneNode(true);
+  const mapPinElementImg = mapPinElement.querySelector(`img`);
 
-  adElement.style = `left: ${ad.location.x - adsData.TAG_SIZE.WIDTH / 2}px; top: ${ad.location.y - adsData.TAG_SIZE.HEIGHT}px;`;
+  mapPinElement.style = `left: ${ad.location.x - ADS_DATA.TAG_SIZE.WIDTH / 2}px; top: ${ad.location.y - ADS_DATA.TAG_SIZE.HEIGHT}px;`;
+  mapPinElementImg.src = ad.author.avatar;
+  mapPinElementImg.alt = ad.offer.title;
 
-  const adElementImg = adElement.querySelector(`img`);
-  adElementImg.src = ad.author.avatar;
-  adElementImg.alt = ad.offer.title;
-
-  return adElement;
+  return mapPinElement;
 }
 
-// Создание Фрагмента объявлений
-function createAdsFragment(ads) {
-  const adsTemplate = document.querySelector(`#pin`).content.querySelector(`.map__pin`);
-  const newFragment = document.createDocumentFragment();
+// Создание Фрагмента похожего объявления
+function createMapPinFragment(ads) {
+  const mapPinFragment = document.createDocumentFragment();
 
-  ads.forEach(function (ad) {
-    newFragment.appendChild(createElementAdsFragment(ad, adsTemplate));
+  ads.forEach((ad) => {
+    const mapPinFragmentElement = createMapPinFragmentElement(ad);
+    mapPinFragment.appendChild(mapPinFragmentElement);
   });
 
-  return newFragment;
+  return mapPinFragment;
 }
 
 // Конвертация англоязычного типа жилья в русскоязычный
 function convertTypeHouse(lang) {
   return {
-    'palace': `Дворец`,
-    'flat': `Квартира`,
-    'house': `Дом`,
-    'bungalow': `Бунгало`
+    palace: `Дворец`,
+    flat: `Квартира`,
+    house: `Дом`,
+    bungalow: `Бунгало`
   }[lang];
 }
 
@@ -117,107 +118,98 @@ function getTextRoomsAndGuests(ad) {
 }
 
 // Создание Фрагмента доступных удобств
-function createFeaturesFragment(features, featureTemplate) {
-  const featuresFragment = document.createDocumentFragment();
+function createPopupFeatureFragment(features, popupFeatureTemplate) {
+  const popupFeatureFragment = document.createDocumentFragment();
 
-  features.forEach(function (feature) {
-    const featureElement = featureTemplate.cloneNode(true);
-    featureElement.className = `popup__feature popup__feature--${feature}`;
-    featuresFragment.appendChild(featureElement);
+  features.forEach((feature) => {
+    const popupFeatureElement = popupFeatureTemplate.cloneNode(true);
+    popupFeatureElement.className = `popup__feature popup__feature--${feature}`;
+    popupFeatureFragment.appendChild(popupFeatureElement);
   });
 
-  return featuresFragment;
-}
-
-// Получение списка доступных удобств в карточке объявления
-function getListFeatures(features, parent) {
-  const featuresElement = parent.querySelector(`.popup__features`);
-
-  if (features) {
-    const featuresFragment = createFeaturesFragment(features, featuresElement.querySelector(`.popup__feature`));
-
-    while (featuresElement.firstChild) {
-      featuresElement.removeChild(featuresElement.firstChild);
-    }
-    featuresElement.appendChild(featuresFragment);
-
-  } else {
-    featuresElement.classList.add(`hidden`);
-  }
+  return popupFeatureFragment;
 }
 
 // Создание Фрагмента фотографий
-function createPhotosFragment(photos, photoTemplate) {
-  const photosFragment = document.createDocumentFragment();
+function createPopupPhotoFragment(photos, popupPhotoTemplate) {
+  const popupPhotoFragment = document.createDocumentFragment();
 
-  photos.forEach(function (photo) {
-    const photoElement = photoTemplate.cloneNode(true);
-    photoElement.src = photo;
-    photosFragment.appendChild(photoElement);
+  photos.forEach((photo) => {
+    const popupPhotoElement = popupPhotoTemplate.cloneNode(true);
+    popupPhotoElement.src = photo;
+    popupPhotoFragment.appendChild(popupPhotoElement);
   });
 
-  return photosFragment;
-}
-
-// Получение фотографий в карточке объявления
-function getListPhotos(photos, parent) {
-  const photosElement = parent.querySelector(`.popup__photos`);
-
-  if (photos) {
-    const photoElement = photosElement.querySelector(`.popup__photo`);
-    photoElement.replaceWith(createPhotosFragment(photos, photoElement));
-  } else {
-    photosElement.classList.add(`hidden`);
-  }
-}
-
-// Создание DOM-элемента для Фрагмента карточки объявления
-function createElementCardAdFragment(ad, cardAdTemplate) {
-  const cardAdElement = cardAdTemplate.cloneNode(true);
-
-  cardAdElement.querySelector(`.popup__avatar`).src = ad.author.avatar;
-  cardAdElement.querySelector(`.popup__title`).textContent = ad.offer.title;
-  cardAdElement.querySelector(`.popup__text--address`).textContent = ad.offer.address;
-  cardAdElement.querySelector(`.popup__text--price`).textContent = `${ad.offer.price}₽/ночь`;
-  cardAdElement.querySelector(`.popup__type`).textContent = convertTypeHouse(ad.offer.type);
-  cardAdElement.querySelector(`.popup__text--capacity`).textContent = getTextRoomsAndGuests(ad);
-  cardAdElement.querySelector(`.popup__text--time`).textContent = `Заезд после ${ad.offer.checkin}, выезд до ${ad.offer.checkout}`;
-  cardAdElement.querySelector(`.popup__description`).textContent = ad.offer.description;
-
-  // Получение списка доступных удобств в карточке объявления, или скрытие данного блока
-  getListFeatures(ad.offer.features, cardAdElement);
-
-  // Получение всех фотографий из списка photos или скрытие данного блока
-  getListPhotos(ad.offer.photos, cardAdElement);
-
-  return cardAdElement;
+  return popupPhotoFragment;
 }
 
 // Создание Фрагмента карточки объявления
-function createCardAdFragment(ad) {
-  const cardAdTemplate = document.querySelector(`#card`).content.querySelector(`.map__card`);
-  const cardAdFragment = document.createDocumentFragment();
+function createMapCardFragment(ad) {
+  const mapCardFragment = document.createDocumentFragment();
+  const mapCardElement = mapCardTemplate.cloneNode(true);
 
-  cardAdFragment.appendChild(createElementCardAdFragment(ad, cardAdTemplate));
-  return cardAdFragment;
+  const popupFeatures = mapCardElement.querySelector(`.popup__features`);
+  const popupFeatureTemplate = popupFeatures.querySelector(`.popup__feature`);
+  const popupPhotos = mapCardElement.querySelector(`.popup__photos`);
+  const popupPhotoTemplate = popupPhotos.querySelector(`.popup__photo`);
+
+  mapCardElement.querySelector(`.popup__avatar`).src = ad.author.avatar;
+  mapCardElement.querySelector(`.popup__title`).textContent = ad.offer.title;
+  mapCardElement.querySelector(`.popup__text--address`).textContent = ad.offer.address;
+  mapCardElement.querySelector(`.popup__text--price`).textContent = `${ad.offer.price}₽/ночь`;
+  mapCardElement.querySelector(`.popup__type`).textContent = convertTypeHouse(ad.offer.type);
+  mapCardElement.querySelector(`.popup__text--capacity`).textContent = getTextRoomsAndGuests(ad);
+  mapCardElement.querySelector(`.popup__text--time`).textContent = `Заезд после ${ad.offer.checkin}, выезд до ${ad.offer.checkout}`;
+
+  // Необязательное поле, делаем проверку на наличие
+  if (ad.offer.description) {
+    mapCardElement.querySelector(`.popup__description`).textContent = ad.offer.description;
+  } else {
+    mapCardElement.classList.add(`hidden`);
+  }
+
+  // Получение доступных удобств в карточке объявления, или скрытие данного блока
+  if (ad.offer.features) {
+    const popupFeatureFragment = createPopupFeatureFragment(ad.offer.features, popupFeatureTemplate);
+
+    popupFeatures.innerHTML = ``;
+    popupFeatures.appendChild(popupFeatureFragment);
+
+  } else {
+    popupFeatures.classList.add(`hidden`);
+  }
+
+  // Получение всех фотографий из списка photos или скрытие данного блока
+  if (ad.offer.photos) {
+    const popupPhotoFragment = createPopupPhotoFragment(ad.offer.photos, popupPhotoTemplate);
+
+    popupPhotos.innerHTML = ``;
+    popupPhotos.appendChild(popupPhotoFragment);
+
+  } else {
+    popupPhotos.classList.add(`hidden`);
+  }
+
+  mapCardFragment.appendChild(mapCardElement);
+
+  return mapCardFragment;
 }
 
-function main() {
-  const map = document.querySelector(`.map`);
-  map.classList.remove(`map--faded`);
 
-  // Генерация массива объявлений
-  const ads = getAds();
+const map = document.querySelector(`.map`);
+const mapPins = map.querySelector(`.map__pins`);
+const mapPinTemplate = document.querySelector(`#pin`).content.querySelector(`.map__pin`);
+const mapCardTemplate = document.querySelector(`#card`).content.querySelector(`.map__card`);
 
-  const adsListElement = map.querySelector(`.map__pins`);
+map.classList.remove(`map--faded`);
 
-  // Добавление объявлений на карту
-  const adsFragment = createAdsFragment(ads);
-  adsListElement.appendChild(adsFragment);
+// Генерация массива похожих объявлений
+const ads = getAds();
 
-  // Добавление карточки первого объявления
-  const cadrAdFragment = createCardAdFragment(ads[0]);
-  adsListElement.after(cadrAdFragment);
-}
+// Добавление объявлений на карту
+const mapPinFragment = createMapPinFragment(ads);
+mapPins.appendChild(mapPinFragment);
 
-main();
+// Добавление карточки первого похожего объявления
+const mapCardFragment = createMapCardFragment(ads[0]);
+mapPins.after(mapCardFragment);
