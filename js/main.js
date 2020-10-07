@@ -118,7 +118,7 @@ function getTextRoomsAndGuests(ad) {
 }
 
 // Создание Фрагмента доступных удобств
-function createPopupFeatureFragment(features, popupFeatureTemplate) {
+function createPopupFeatureFragment(features) {
   const popupFeatureFragment = document.createDocumentFragment();
 
   features.forEach((feature) => {
@@ -131,7 +131,7 @@ function createPopupFeatureFragment(features, popupFeatureTemplate) {
 }
 
 // Создание Фрагмента фотографий
-function createPopupPhotoFragment(photos, popupPhotoTemplate) {
+function createPopupPhotoFragment(photos) {
   const popupPhotoFragment = document.createDocumentFragment();
 
   photos.forEach((photo) => {
@@ -149,9 +149,7 @@ function createMapCardFragment(ad) {
   const mapCardElement = mapCardTemplate.cloneNode(true);
 
   const popupFeatures = mapCardElement.querySelector(`.popup__features`);
-  const popupFeatureTemplate = popupFeatures.querySelector(`.popup__feature`);
   const popupPhotos = mapCardElement.querySelector(`.popup__photos`);
-  const popupPhotoTemplate = popupPhotos.querySelector(`.popup__photo`);
 
   mapCardElement.querySelector(`.popup__avatar`).src = ad.author.avatar;
   mapCardElement.querySelector(`.popup__title`).textContent = ad.offer.title;
@@ -170,7 +168,7 @@ function createMapCardFragment(ad) {
 
   // Получение доступных удобств в карточке объявления, или скрытие данного блока
   if (ad.offer.features) {
-    const popupFeatureFragment = createPopupFeatureFragment(ad.offer.features, popupFeatureTemplate);
+    const popupFeatureFragment = createPopupFeatureFragment(ad.offer.features);
 
     popupFeatures.innerHTML = ``;
     popupFeatures.appendChild(popupFeatureFragment);
@@ -181,7 +179,7 @@ function createMapCardFragment(ad) {
 
   // Получение всех фотографий из списка photos или скрытие данного блока
   if (ad.offer.photos) {
-    const popupPhotoFragment = createPopupPhotoFragment(ad.offer.photos, popupPhotoTemplate);
+    const popupPhotoFragment = createPopupPhotoFragment(ad.offer.photos);
 
     popupPhotos.innerHTML = ``;
     popupPhotos.appendChild(popupPhotoFragment);
@@ -200,6 +198,8 @@ const map = document.querySelector(`.map`);
 const mapPins = map.querySelector(`.map__pins`);
 const mapPinTemplate = document.querySelector(`#pin`).content.querySelector(`.map__pin`);
 const mapCardTemplate = document.querySelector(`#card`).content.querySelector(`.map__card`);
+const popupFeatureTemplate = mapCardTemplate.querySelector(`.popup__features`).querySelector(`.popup__feature`);
+const popupPhotoTemplate = mapCardTemplate.querySelector(`.popup__photos`).querySelector(`.popup__photo`);
 
 map.classList.remove(`map--faded`);
 
