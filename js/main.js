@@ -237,12 +237,21 @@ function setDisabled(collection, disabled = true) {
 function setInactiveMode() {
   map.classList.add(`map--faded`);
   adForm.classList.add(`ad-form--disabled`);
+
+  // Заблокировать ввод объявления
   setDisabled(adFormFieldsets);
   setDisabled(mapFiltersHousings);
+
+  // Сбросить фильтры
   resetMapFilters(mapFiltersHousings);
   resetMapFilters(mapFiltersFeatures);
+  // Добавить сброс полей ввода
 
-  clearMap();
+  ads = [];
+  // Очистить карту
+  removeMapPin();
+  removeMapCard();
+
   // Добавить возврат mapPinMain на исходную позицию
   address.value = getCoordinats(mapPinMain);
 
@@ -250,47 +259,67 @@ function setInactiveMode() {
   adFormSubmit.removeEventListener(`click`, onAdFormSubmitClick);
   adFormReset.removeEventListener(`click`, onAdFormResetClick);
   adForm.removeEventListener(`change`, onAdFormChange);
+  // Удалить обработчик событий для меток объявлений на карте
 }
 
 // Установить активный режим
 function setActiveMode() {
-  map.classList.remove(`map--faded`); // при перемещении mapPinMain в активном режиме, стоит ли заного удалять аттрибут disabled ??
-  adForm.classList.remove(`ad-form--disabled`);
-  setDisabled(adFormFieldsets, false);
-  setDisabled(mapFiltersHousings, false);
+  if (map.matches(`.map--faded`)) {
+    map.classList.remove(`map--faded`);
+    adForm.classList.remove(`ad-form--disabled`);
+    setDisabled(adFormFieldsets, false);
+    setDisabled(mapFiltersHousings, false);
 
-  updateMap();
+    mapPinMain.removeEventListener(`keydown`, onMapPinMainKeydown);
+    adFormSubmit.addEventListener(`click`, onAdFormSubmitClick);
+    adFormReset.addEventListener(`click`, onAdFormResetClick);
+    adForm.addEventListener(`change`, onAdFormChange);
+  }
 
-  mapPinMain.removeEventListener(`keydown`, onMapPinMainKeydown);
-  adFormSubmit.addEventListener(`click`, onAdFormSubmitClick);
-  adFormReset.addEventListener(`click`, onAdFormResetClick);
-  adForm.addEventListener(`change`, onAdFormChange);
+  address.value = getCoordinats(mapPinMain, false);
+
+  // Очистить карту
+  removeMapPin();
+  removeMapCard();
+
+  // Генерация массива объявлений
+  ads = getAds();
+
+  // Добавление объявлений на карту
+  const mapPinFragment = createMapPinFragment(ads);
+  mapPins.appendChild(mapPinFragment);
+
+  // Добавить обработчик событий для меток объявлений на карте
 }
 
 // Получить координаты элемента
-function getCoordinats(element, obj) {
+function getCoordinats(element, isCenter = true) {
   const coordsMap = map.getBoundingClientRect();
   const coords = element.getBoundingClientRect();
 
   const x = Math.round(coords.left - coordsMap.x + coords.width / 2);
-  const y = Math.round(coords.top - coordsMap.y + (obj && mapPinMain.scrollHeight || coords.height / 2));
+  const y = Math.round(coords.top - coordsMap.y + (!isCenter && mapPinMain.scrollHeight || coords.height / 2));
 
   return `${x}, ${y}`;
 }
 
-// Очистить карту от меток
-function clearMap() {
-  const collectionMapPin = mapPins.querySelectorAll(`button[class="map__pin"]`);
-  collectionMapPin.forEach((element) => {
-    element.remove();
-  });
+// Удалить метки на карте
+function removeMapPin() {
+  collectionMapPin = mapPins.querySelectorAll(`button[class="map__pin"]`);
 
-  const collectionMapCard = map.querySelectorAll(`article[class="map__card popup"]`);
-  collectionMapCard.forEach((element) => {
+  if (collectionMapPin.length) {
+    removeElements(collectionMapPin);
+  }
+}
+
+// Удалить элементы
+function removeElements(collection) {
+  collection.forEach((element) => {
     element.remove();
   });
 }
 
+// Сбросить фильтры на карте
 function resetMapFilters(collection) {
   collection.forEach((element) => {
     switch (element.tagName) {
@@ -304,48 +333,29 @@ function resetMapFilters(collection) {
   });
 }
 
-function updateMap() {
-  address.value = getCoordinats(mapPinMain, true);
-
-  // Очистить карту
-  clearMap();
-
-  // Генерация массива объявлений
-  const ads = getAds();
-
-  // Добавление объявлений на карту
-  const mapPinFragment = createMapPinFragment(ads);
-  mapPins.appendChild(mapPinFragment);
+// Добавить карточку объявления
+function addMapCard() {
+  removeMapCard();
 
   // Добавление карточки первого похожего объявления
   const mapCardFragment = createMapCardFragment(ads[0]);
   mapPins.after(mapCardFragment);
+
+  mapCardPopupClose = map.querySelector(`.map__card`).querySelector(`.popup__close`);
+  mapCardPopupClose.addEventListener(`click`, onMapCardPopupCloseClick);
 }
 
+// Удалить карточку объявления
+function removeMapCard() {
+  collectionMapCard = map.querySelectorAll(`article[class="map__card popup"]`);
 
-function onMapPinMainMousedown(evt) {
-  if (evt.button === 0) {
-    setActiveMode();
+  if (collectionMapCard.length) {
+    mapCardPopupClose.removeEventListener(`click`, onMapCardPopupCloseClick);
+    removeElements(collectionMapCard);
   }
 }
 
-function onMapPinMainKeydown(evt) {
-  if (evt.key === `Enter`) {
-    setActiveMode();
-  }
-}
-
-function onAdFormSubmitClick() {
-  // evt.preventDefault();
-}
-
-function onAdFormResetClick(evt) {
-  if (evt.button === 0) {
-    setInactiveMode();
-  }
-}
-
-function onChangeType() {
+function validationType() {
   const typeValue = adFormType.value;
   const newValue = TYPE_HOUSING[typeValue].minPrice;
 
@@ -353,33 +363,36 @@ function onChangeType() {
   adFormPrice.placeholder = newValue;
 }
 
-function onChangeTime(element) {
-  adFormTimein.setCustomValidity(``);
-  adFormTimeout.setCustomValidity(``);
+function validationTime(element) {
+  let textValidityTimein = ``;
+  let textValidityTimeout = ``;
 
   if (adFormTimeout.value !== adFormTimein.value) {
     switch (element) {
       case `timein`:
-        adFormTimeout.setCustomValidity(`Время выезда должно быть до ${adFormTimein.value}`);
+        textValidityTimeout = `Время выезда должно быть до ${adFormTimein.value}`;
         break;
       case `timeout`:
-        adFormTimein.setCustomValidity(`Время заезда должно быть после ${adFormTimeout.value}`);
+        textValidityTimein = `Время заезда должно быть после ${adFormTimeout.value}`;
         break;
     }
   }
+
+  adFormTimein.setCustomValidity(textValidityTimein);
+  adFormTimeout.setCustomValidity(textValidityTimeout);
 
   adFormTimein.reportValidity();
   adFormTimeout.reportValidity();
 }
 
-function onChangeRoomNumber() {
+function validationRoomNumber() {
   const roomNumberValue = adFormRoomNumber.value;
   const capacityValue = adFormCapacity.value;
 
-  const textError = (CAPACITY_VALIDITY[roomNumberValue].values.includes(capacityValue)) ? `` : CAPACITY_VALIDITY[roomNumberValue].textError;
+  const textValidityCapacity = (CAPACITY_VALIDITY[roomNumberValue].values.includes(capacityValue)) ? `` : CAPACITY_VALIDITY[roomNumberValue].textError;
 
   /*
-  // либо такой вариант
+  // либо использовать такой вариант
   switch (adFormRoomNumber.value) {
     case `1`:
       textError = (adFormCapacity.value === `1`) ? `` : `1 комната — «для 1 гостя»`;
@@ -397,27 +410,65 @@ function onChangeRoomNumber() {
       textError = (adFormCapacity.value === `0`) ? `` : `«не для гостей»`;
   }*/
 
-  adFormCapacity.setCustomValidity(textError);
+  adFormCapacity.setCustomValidity(textValidityCapacity);
   adFormCapacity.reportValidity();
 }
 
+
+// ОБРАБОТЧИКИ СОБЫТИЙ
+
+function onMapPinMainMousedown(evt) {
+  if (evt.button === 0) {
+    setActiveMode();
+    addMapCard(); // Позже переместить вызов на клик по метке объявления
+  }
+}
+
+function onMapPinMainKeydown(evt) {
+  if (evt.key === `Enter`) {
+    setActiveMode();
+  }
+}
+
+function onAdFormSubmitClick() {
+  // evt.preventDefault();
+  // setInactiveMode
+}
+
+function onAdFormResetClick(evt) {
+  if (evt.button === 0) {
+    setInactiveMode();
+  }
+}
+
 function onAdFormChange(evt) {
-  switch (evt.target.id) {
+  const target = evt.target.id;
+
+  switch (target) {
     case `type`:
-      onChangeType();
+      validationType();
       break;
 
     case `room_number`:
     case `capacity`:
-      onChangeRoomNumber();
+      validationRoomNumber();
       break;
 
     case `timein`:
     case `timeout`:
-      onChangeTime(evt.target.id);
+      validationTime(target);
       break;
   }
 }
+
+function onMapCardPopupCloseClick(evt) {
+  if (evt.button === 0) {
+    removeMapCard();
+  }
+}
+
+
+// =====================================================================================
 
 const map = document.querySelector(`.map`);
 const adForm = document.querySelector(`.ad-form`);
@@ -445,6 +496,10 @@ const adFormCapacity = adForm.querySelector(`#capacity`);
 const adFormSubmit = adForm.querySelector(`.ad-form__submit`);
 const adFormReset = adForm.querySelector(`.ad-form__reset`);
 
+let mapCardPopupClose;
+let collectionMapCard;
+let collectionMapPin;
+let ads = [];
 
 setInactiveMode();
 
