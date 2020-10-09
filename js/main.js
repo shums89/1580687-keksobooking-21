@@ -15,6 +15,45 @@ const ADS_DATA = {
   LOCATION_Y: {MIN: 130, MAX: 630} // координата y метки на карте от 130 до 630
 };
 
+const TYPE_HOUSING = {
+  bungalow: {
+    minPrice: 0,
+    translate: `Бунгало`
+  },
+  flat: {
+    minPrice: 1000,
+    translate: `Квартира`
+  },
+  house: {
+    minPrice: 5000,
+    translate: `Дом`
+  },
+  palace: {
+    minPrice: 10000,
+    translate: `Дворец`
+  }
+};
+
+const CAPACITY_VALIDITY = {
+  '1': {
+    values: [`1`],
+    textError: `1 комната — «для 1 гостя»`
+  },
+  '2': {
+    values: [`1`, `2`],
+    textError: `для 2 гостей» или «для 1 гостя»`
+  },
+  '3': {
+    values: [`1`, `2`, `3`],
+    textError: `«для 3 гостей», «для 2 гостей» или «для 1 гостя»`
+  },
+  '100': {
+    values: [`0`],
+    textError: `«не для гостей»`
+  }
+};
+
+
 // Генерация случайного числа
 function getRandomInteger(min, max) {
   return Math.floor(min + Math.random() * (max + 1 - min));
@@ -94,16 +133,6 @@ function createMapPinFragment(ads) {
   return mapPinFragment;
 }
 
-// Конвертация англоязычного типа жилья в русскоязычный
-function convertTypeHouse(lang) {
-  return {
-    palace: `Дворец`,
-    flat: `Квартира`,
-    house: `Дом`,
-    bungalow: `Бунгало`
-  }[lang];
-}
-
 // Склонение существительных
 function getEnding(number, words) {
   const cases = [2, 0, 1, 1, 1, 2];
@@ -155,7 +184,7 @@ function createMapCardFragment(ad) {
   mapCardElement.querySelector(`.popup__title`).textContent = ad.offer.title;
   mapCardElement.querySelector(`.popup__text--address`).textContent = ad.offer.address;
   mapCardElement.querySelector(`.popup__text--price`).textContent = `${ad.offer.price}₽/ночь`;
-  mapCardElement.querySelector(`.popup__type`).textContent = convertTypeHouse(ad.offer.type);
+  mapCardElement.querySelector(`.popup__type`).textContent = TYPE_HOUSING[ad.offer.type].translate;
   mapCardElement.querySelector(`.popup__text--capacity`).textContent = getTextRoomsAndGuests(ad);
   mapCardElement.querySelector(`.popup__text--time`).textContent = `Заезд после ${ad.offer.checkin}, выезд до ${ad.offer.checkout}`;
 
@@ -193,23 +222,230 @@ function createMapCardFragment(ad) {
   return mapCardFragment;
 }
 
+// Настройка доступа
+function setDisabled(collection, disabled = true) {
+  collection.forEach((element) => {
+    if (disabled) {
+      element.setAttribute(`disabled`, ``);
+    } else {
+      element.removeAttribute(`disabled`);
+    }
+  });
+}
+
+// Установить неактивный режим
+function setInactiveMode() {
+  map.classList.add(`map--faded`);
+  adForm.classList.add(`ad-form--disabled`);
+  setDisabled(adFormFieldsets);
+  setDisabled(mapFiltersHousings);
+  resetMapFilters(mapFiltersHousings);
+  resetMapFilters(mapFiltersFeatures);
+
+  clearMap();
+  // Добавить возврат mapPinMain на исходную позицию
+  address.value = getCoordinats(mapPinMain);
+
+  mapPinMain.addEventListener(`keydown`, onMapPinMainKeydown);
+  adFormSubmit.removeEventListener(`click`, onAdFormSubmitClick);
+  adFormReset.removeEventListener(`click`, onAdFormResetClick);
+  adForm.removeEventListener(`change`, onAdFormChange);
+}
+
+// Установить активный режим
+function setActiveMode() {
+  map.classList.remove(`map--faded`); // при перемещении mapPinMain в активном режиме, стоит ли заного удалять аттрибут disabled ??
+  adForm.classList.remove(`ad-form--disabled`);
+  setDisabled(adFormFieldsets, false);
+  setDisabled(mapFiltersHousings, false);
+
+  updateMap();
+
+  mapPinMain.removeEventListener(`keydown`, onMapPinMainKeydown);
+  adFormSubmit.addEventListener(`click`, onAdFormSubmitClick);
+  adFormReset.addEventListener(`click`, onAdFormResetClick);
+  adForm.addEventListener(`change`, onAdFormChange);
+}
+
+// Получить координаты элемента
+function getCoordinats(element, obj) {
+  const coordsMap = map.getBoundingClientRect();
+  const coords = element.getBoundingClientRect();
+
+  const x = Math.round(coords.left - coordsMap.x + coords.width / 2);
+  const y = Math.round(coords.top - coordsMap.y + (obj && mapPinMain.scrollHeight || coords.height / 2));
+
+  return `${x}, ${y}`;
+}
+
+// Очистить карту от меток
+function clearMap() {
+  const collectionMapPin = mapPins.querySelectorAll(`button[class="map__pin"]`);
+  collectionMapPin.forEach((element) => {
+    element.remove();
+  });
+
+  const collectionMapCard = map.querySelectorAll(`article[class="map__card popup"]`);
+  collectionMapCard.forEach((element) => {
+    element.remove();
+  });
+}
+
+function resetMapFilters(collection) {
+  collection.forEach((element) => {
+    switch (element.tagName) {
+      case `SELECT`:
+        element.value = `any`;
+        break;
+      case `INPUT`:
+        element.checked = false;
+        break;
+    }
+  });
+}
+
+function updateMap() {
+  address.value = getCoordinats(mapPinMain, true);
+
+  // Очистить карту
+  clearMap();
+
+  // Генерация массива объявлений
+  const ads = getAds();
+
+  // Добавление объявлений на карту
+  const mapPinFragment = createMapPinFragment(ads);
+  mapPins.appendChild(mapPinFragment);
+
+  // Добавление карточки первого похожего объявления
+  const mapCardFragment = createMapCardFragment(ads[0]);
+  mapPins.after(mapCardFragment);
+}
+
+
+function onMapPinMainMousedown(evt) {
+  if (evt.button === 0) {
+    setActiveMode();
+  }
+}
+
+function onMapPinMainKeydown(evt) {
+  if (evt.key === `Enter`) {
+    setActiveMode();
+  }
+}
+
+function onAdFormSubmitClick() {
+  // evt.preventDefault();
+}
+
+function onAdFormResetClick(evt) {
+  if (evt.button === 0) {
+    setInactiveMode();
+  }
+}
+
+function onChangeType() {
+  const typeValue = adFormType.value;
+  const newValue = TYPE_HOUSING[typeValue].minPrice;
+
+  adFormPrice.min = newValue;
+  adFormPrice.placeholder = newValue;
+}
+
+function onChangeTime(element) {
+  adFormTimein.setCustomValidity(``);
+  adFormTimeout.setCustomValidity(``);
+
+  if (adFormTimeout.value !== adFormTimein.value) {
+    switch (element) {
+      case `timein`:
+        adFormTimeout.setCustomValidity(`Время выезда должно быть до ${adFormTimein.value}`);
+        break;
+      case `timeout`:
+        adFormTimein.setCustomValidity(`Время заезда должно быть после ${adFormTimeout.value}`);
+        break;
+    }
+  }
+
+  adFormTimein.reportValidity();
+  adFormTimeout.reportValidity();
+}
+
+function onChangeRoomNumber() {
+  const roomNumberValue = adFormRoomNumber.value;
+  const capacityValue = adFormCapacity.value;
+
+  const textError = (CAPACITY_VALIDITY[roomNumberValue].values.includes(capacityValue)) ? `` : CAPACITY_VALIDITY[roomNumberValue].textError;
+
+  /*
+  // либо такой вариант
+  switch (adFormRoomNumber.value) {
+    case `1`:
+      textError = (adFormCapacity.value === `1`) ? `` : `1 комната — «для 1 гостя»`;
+      break;
+
+    case `2`:
+      textError = ([`1`, `2`].includes(adFormCapacity.value)) ? `` : `для 2 гостей» или «для 1 гостя»`;
+      break;
+
+    case `3`:
+      textError = ([`1`, `2`, `3`].includes(adFormCapacity.value)) ? `` : `«для 3 гостей», «для 2 гостей» или «для 1 гостя»`;
+      break;
+
+    default:
+      textError = (adFormCapacity.value === `0`) ? `` : `«не для гостей»`;
+  }*/
+
+  adFormCapacity.setCustomValidity(textError);
+  adFormCapacity.reportValidity();
+}
+
+function onAdFormChange(evt) {
+  switch (evt.target.id) {
+    case `type`:
+      onChangeType();
+      break;
+
+    case `room_number`:
+    case `capacity`:
+      onChangeRoomNumber();
+      break;
+
+    case `timein`:
+    case `timeout`:
+      onChangeTime(evt.target.id);
+      break;
+  }
+}
 
 const map = document.querySelector(`.map`);
-const mapPins = map.querySelector(`.map__pins`);
+const adForm = document.querySelector(`.ad-form`);
 const mapPinTemplate = document.querySelector(`#pin`).content.querySelector(`.map__pin`);
 const mapCardTemplate = document.querySelector(`#card`).content.querySelector(`.map__card`);
+
 const popupFeatureTemplate = mapCardTemplate.querySelector(`.popup__features`).querySelector(`.popup__feature`);
 const popupPhotoTemplate = mapCardTemplate.querySelector(`.popup__photos`).querySelector(`.popup__photo`);
 
-map.classList.remove(`map--faded`);
+const mapPins = map.querySelector(`.map__pins`);
+const mapPinMain = map.querySelector(`.map__pin--main`);
+const mapFilters = map.querySelector(`.map__filters`);
 
-// Генерация массива похожих объявлений
-const ads = getAds();
+const mapFiltersHousings = mapFilters.querySelectorAll(`[id^="housing-"]`);
+const mapFiltersFeatures = mapFilters.querySelector(`#housing-features`).querySelectorAll(`input[name="features"]`);
 
-// Добавление объявлений на карту
-const mapPinFragment = createMapPinFragment(ads);
-mapPins.appendChild(mapPinFragment);
+const adFormFieldsets = adForm.querySelectorAll(`fieldset`);
+const address = adForm.querySelector(`#address`);
+const adFormType = adForm.querySelector(`#type`);
+const adFormPrice = adForm.querySelector(`#price`);
+const adFormTimein = adForm.querySelector(`#timein`);
+const adFormTimeout = adForm.querySelector(`#timeout`);
+const adFormRoomNumber = adForm.querySelector(`#room_number`);
+const adFormCapacity = adForm.querySelector(`#capacity`);
+const adFormSubmit = adForm.querySelector(`.ad-form__submit`);
+const adFormReset = adForm.querySelector(`.ad-form__reset`);
 
-// Добавление карточки первого похожего объявления
-const mapCardFragment = createMapCardFragment(ads[0]);
-mapPins.after(mapCardFragment);
+
+setInactiveMode();
+
+mapPinMain.addEventListener(`mousedown`, onMapPinMainMousedown);
