@@ -125,10 +125,11 @@ function createMapPinFragmentElement(ad) {
 function createMapPinFragment(ads) {
   const mapPinFragment = document.createDocumentFragment();
 
-  ads.forEach((ad) => {
-    const mapPinFragmentElement = createMapPinFragmentElement(ad);
+  for (let i = 0; i < ads.length; i++) {
+    const mapPinFragmentElement = createMapPinFragmentElement(ads[i]);
+    mapPinFragmentElement.dataset.id = i;
     mapPinFragment.appendChild(mapPinFragmentElement);
-  });
+  }
 
   return mapPinFragment;
 }
@@ -259,6 +260,8 @@ function setInactiveMode() {
   adFormSubmit.removeEventListener(`click`, onAdFormSubmitClick);
   adFormReset.removeEventListener(`click`, onAdFormResetClick);
   adForm.removeEventListener(`change`, onAdFormChange);
+  map.removeEventListener(`click`, onMapClick);
+  map.removeEventListener(`keydown`, onMapKeydown);
   // Удалить обработчик событий для меток объявлений на карте
 }
 
@@ -274,6 +277,8 @@ function setActiveMode() {
     adFormSubmit.addEventListener(`click`, onAdFormSubmitClick);
     adFormReset.addEventListener(`click`, onAdFormResetClick);
     adForm.addEventListener(`change`, onAdFormChange);
+    map.addEventListener(`click`, onMapClick);
+    map.addEventListener(`keydown`, onMapKeydown);
   }
 
   address.value = getCoordinats(mapPinMain, false);
@@ -288,6 +293,8 @@ function setActiveMode() {
   // Добавление объявлений на карту
   const mapPinFragment = createMapPinFragment(ads);
   mapPins.appendChild(mapPinFragment);
+
+  collectionMapPin = mapPins.querySelectorAll(`button[class="map__pin"]`);
 
   // Добавить обработчик событий для меток объявлений на карте
 }
@@ -305,9 +312,7 @@ function getCoordinats(element, isCenter = true) {
 
 // Удалить метки на карте
 function removeMapPin() {
-  collectionMapPin = mapPins.querySelectorAll(`button[class="map__pin"]`);
-
-  if (collectionMapPin.length) {
+  if (collectionMapPin && collectionMapPin.length) {
     removeElements(collectionMapPin);
   }
 }
@@ -334,11 +339,11 @@ function resetMapFilters(collection) {
 }
 
 // Добавить карточку объявления
-function addMapCard() {
+function addMapCard(index) {
   removeMapCard();
 
   // Добавление карточки первого похожего объявления
-  const mapCardFragment = createMapCardFragment(ads[0]);
+  const mapCardFragment = createMapCardFragment(ads[index]);
   mapPins.after(mapCardFragment);
 
   mapCardPopupClose = map.querySelector(`.map__card`).querySelector(`.popup__close`);
@@ -349,7 +354,7 @@ function addMapCard() {
 function removeMapCard() {
   collectionMapCard = map.querySelectorAll(`article[class="map__card popup"]`);
 
-  if (collectionMapCard.length) {
+  if (collectionMapCard && collectionMapCard.length) {
     mapCardPopupClose.removeEventListener(`click`, onMapCardPopupCloseClick);
     removeElements(collectionMapCard);
   }
@@ -391,25 +396,6 @@ function validationRoomNumber() {
 
   const textValidityCapacity = (CAPACITY_VALIDITY[roomNumberValue].values.includes(capacityValue)) ? `` : CAPACITY_VALIDITY[roomNumberValue].textError;
 
-  /*
-  // либо использовать такой вариант
-  switch (adFormRoomNumber.value) {
-    case `1`:
-      textError = (adFormCapacity.value === `1`) ? `` : `1 комната — «для 1 гостя»`;
-      break;
-
-    case `2`:
-      textError = ([`1`, `2`].includes(adFormCapacity.value)) ? `` : `для 2 гостей» или «для 1 гостя»`;
-      break;
-
-    case `3`:
-      textError = ([`1`, `2`, `3`].includes(adFormCapacity.value)) ? `` : `«для 3 гостей», «для 2 гостей» или «для 1 гостя»`;
-      break;
-
-    default:
-      textError = (adFormCapacity.value === `0`) ? `` : `«не для гостей»`;
-  }*/
-
   adFormCapacity.setCustomValidity(textValidityCapacity);
   adFormCapacity.reportValidity();
 }
@@ -420,7 +406,6 @@ function validationRoomNumber() {
 function onMapPinMainMousedown(evt) {
   if (evt.button === 0) {
     setActiveMode();
-    addMapCard(); // Позже переместить вызов на клик по метке объявления
   }
 }
 
@@ -467,6 +452,36 @@ function onMapCardPopupCloseClick(evt) {
   }
 }
 
+function onMapClick(evt) {
+  mapPinTarget = evt.target.closest(`button[class="map__pin"]`);
+
+  if (mapPinTarget) {
+    addMapCard(mapPinTarget.dataset.id);
+  }
+}
+
+function onMapKeydown(evt) {
+  switch (evt.key) {
+    case `Enter`:
+      mapPinTarget = evt.target.closest(`button[class="map__pin"]`);
+
+      if (mapPinTarget) {
+        addMapCard(mapPinTarget.dataset.id);
+      } else {
+        const mapCardPopupCloseTarget = evt.target.closest(`button[class="popup__close"]`);
+
+        if (mapCardPopupCloseTarget) {
+          removeMapCard();
+        }
+      }
+      break;
+
+    case `Escape`:
+      evt.preventDefault();
+      removeMapCard();
+      break;
+  }
+}
 
 // =====================================================================================
 
@@ -500,6 +515,7 @@ let mapCardPopupClose;
 let collectionMapCard;
 let collectionMapPin;
 let ads = [];
+let mapPinTarget;
 
 setInactiveMode();
 
