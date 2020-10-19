@@ -233,6 +233,8 @@ function setDisabled(collection, disabled = true) {
 
 // Установить неактивный режим
 function setInactiveMode() {
+  const mapFiltersFeatures = mapFilters.querySelector(`#housing-features`).querySelectorAll(`input[name="features"]`);
+
   map.classList.add(`map--faded`);
   adForm.classList.add(`ad-form--disabled`);
 
@@ -345,6 +347,9 @@ function removeMapCard() {
 }
 
 function checkType() {
+  const adFormType = adForm.querySelector(`#type`);
+  const adFormPrice = adForm.querySelector(`#price`);
+
   const typeValue = adFormType.value;
   const newValue = TYPE_HOUSING[typeValue].minPrice;
 
@@ -353,6 +358,9 @@ function checkType() {
 }
 
 function checkTime(element) {
+  const adFormTimein = adForm.querySelector(`#timein`);
+  const adFormTimeout = adForm.querySelector(`#timeout`);
+
   let textValidityTimein = ``;
   let textValidityTimeout = ``;
 
@@ -375,6 +383,9 @@ function checkTime(element) {
 }
 
 function checkRoomNumber() {
+  const adFormRoomNumber = adForm.querySelector(`#room_number`);
+  const adFormCapacity = adForm.querySelector(`#capacity`);
+
   const roomNumberValue = adFormRoomNumber.value;
   const capacityValue = adFormCapacity.value;
 
@@ -477,16 +488,9 @@ const mapPinMain = map.querySelector(`.map__pin--main`);
 const mapFilters = map.querySelector(`.map__filters`);
 
 const mapFiltersHousings = mapFilters.querySelectorAll(`[id^="housing-"]`);
-const mapFiltersFeatures = mapFilters.querySelector(`#housing-features`).querySelectorAll(`input[name="features"]`);
 
 const adFormFieldsets = adForm.querySelectorAll(`fieldset`);
 const address = adForm.querySelector(`#address`);
-const adFormType = adForm.querySelector(`#type`);
-const adFormPrice = adForm.querySelector(`#price`);
-const adFormTimein = adForm.querySelector(`#timein`);
-const adFormTimeout = adForm.querySelector(`#timeout`);
-const adFormRoomNumber = adForm.querySelector(`#room_number`);
-const adFormCapacity = adForm.querySelector(`#capacity`);
 const adFormSubmit = adForm.querySelector(`.ad-form__submit`);
 const adFormReset = adForm.querySelector(`.ad-form__reset`);
 
