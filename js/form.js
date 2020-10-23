@@ -6,11 +6,14 @@
   const adFormSubmit = adForm.querySelector(`.ad-form__submit`);
   const adFormReset = adForm.querySelector(`.ad-form__reset`);
   const adFormFieldsets = adForm.querySelectorAll(`fieldset`);
+  const adFormType = adForm.querySelector(`#type`);
+  const adFormPrice = adForm.querySelector(`#price`);
+  const adFormTimein = adForm.querySelector(`#timein`);
+  const adFormTimeout = adForm.querySelector(`#timeout`);
+  const adFormRoomNumber = adForm.querySelector(`#room_number`);
+  const adFormCapacity = adForm.querySelector(`#capacity`);
 
   function checkType() {
-    const adFormType = adForm.querySelector(`#type`);
-    const adFormPrice = adForm.querySelector(`#price`);
-
     const typeValue = adFormType.value;
     const newValue = window.data.TYPE_HOUSING[typeValue].minPrice;
 
@@ -19,9 +22,6 @@
   }
 
   function checkTime(element) {
-    const adFormTimein = adForm.querySelector(`#timein`);
-    const adFormTimeout = adForm.querySelector(`#timeout`);
-
     let textValidityTimein = ``;
     let textValidityTimeout = ``;
 
@@ -44,9 +44,6 @@
   }
 
   function checkRoomNumber() {
-    const adFormRoomNumber = adForm.querySelector(`#room_number`);
-    const adFormCapacity = adForm.querySelector(`#capacity`);
-
     const roomNumberValue = adFormRoomNumber.value;
     const capacityValue = adFormCapacity.value;
 
@@ -69,9 +66,9 @@
   }
 
   function onAdFormChange(evt) {
-    const target = evt.target.id;
+    const id = evt.target.id;
 
-    switch (target) {
+    switch (id) {
       case `type`:
         checkType();
         break;
@@ -83,7 +80,7 @@
 
       case `timein`:
       case `timeout`:
-        checkTime(target);
+        checkTime(id);
         break;
     }
   }

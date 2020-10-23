@@ -15,7 +15,7 @@
   }
 
   // Создание Фрагмента доступных удобств
-  function createPopupFeatureFragment(features) {
+  function createPopupFeaturesFragment(features) {
     const popupFeatureFragment = document.createDocumentFragment();
 
     features.forEach((feature) => {
@@ -28,7 +28,7 @@
   }
 
   // Создание Фрагмента фотографий
-  function createPopupPhotoFragment(photos) {
+  function createPopupPhotosFragment(photos) {
     const popupPhotoFragment = document.createDocumentFragment();
 
     photos.forEach((photo) => {
@@ -47,6 +47,8 @@
     const popupFeatures = cardElement.querySelector(`.popup__features`);
     const popupPhotos = cardElement.querySelector(`.popup__photos`);
 
+    cardElement.querySelector(`.popup__close`).dataset.name = `map_card`;
+
     cardElement.querySelector(`.popup__avatar`).src = ad.author.avatar;
     cardElement.querySelector(`.popup__title`).textContent = ad.offer.title;
     cardElement.querySelector(`.popup__text--address`).textContent = ad.offer.address;
@@ -64,22 +66,20 @@
 
     // Получение доступных удобств в карточке объявления, или скрытие данного блока
     if (ad.offer.features) {
-      const popupFeatureFragment = createPopupFeatureFragment(ad.offer.features);
+      const popupFeatureFragment = createPopupFeaturesFragment(ad.offer.features);
 
       popupFeatures.innerHTML = ``;
       popupFeatures.appendChild(popupFeatureFragment);
-
     } else {
       popupFeatures.classList.add(`hidden`);
     }
 
     // Получение всех фотографий из списка photos или скрытие данного блока
     if (ad.offer.photos) {
-      const popupPhotoFragment = createPopupPhotoFragment(ad.offer.photos);
+      const popupPhotoFragment = createPopupPhotosFragment(ad.offer.photos);
 
       popupPhotos.innerHTML = ``;
       popupPhotos.appendChild(popupPhotoFragment);
-
     } else {
       popupPhotos.classList.add(`hidden`);
     }
