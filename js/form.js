@@ -53,6 +53,14 @@
     adFormCapacity.reportValidity();
   }
 
+  function resetAdForm() {
+    adForm.reset();
+    adFormPrice.placeholder = 0;
+
+    window.map.setMapInactiveMode();
+    setFormInactiveMode();
+  }
+
   function onAdFormSubmitClick() {
     // evt.preventDefault();
     // setInactiveMode
@@ -60,8 +68,7 @@
 
   function onAdFormResetClick(evt) {
     if (evt.button === 0) {
-      window.map.setMapInactiveMode();
-      setFormInactiveMode();
+      resetAdForm();
     }
   }
 

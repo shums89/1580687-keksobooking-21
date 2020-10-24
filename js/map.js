@@ -5,6 +5,7 @@
   const map = document.querySelector(`.map`);
 
   const mapPins = map.querySelector(`.map__pins`);
+  const mapPinMain = mapPins.querySelector(`.map__pin--main`);
   const mapFilters = map.querySelector(`.map__filters`);
 
   const mapFiltersHousings = mapFilters.querySelectorAll(`[id^="housing-"]`);
@@ -24,12 +25,12 @@
   }
 
   // Получить координаты элемента
-  function getCoordinats(element, isCenter = true) {
+  function getCoordinats(isCenter = true) {
     const mapData = map.getBoundingClientRect();
-    const elementData = element.getBoundingClientRect();
+    const mapPinMainData = mapPinMain.getBoundingClientRect();
 
-    const x = Math.round(elementData.left - mapData.left + elementData.width / 2);
-    const y = Math.round(elementData.top - mapData.top + (!isCenter && element.scrollHeight || elementData.height / 2));
+    const x = Math.round(mapPinMainData.left - mapData.left + mapPinMainData.width / 2);
+    const y = Math.round(mapPinMainData.top - mapData.top + (!isCenter && mapPinMain.scrollHeight || mapPinMainData.height / 2));
 
     return `${x}, ${y}`;
   }
@@ -48,7 +49,8 @@
     window.pin.removePins(map);
     window.card.removeCard(map);
 
-    /* Добавить возврат mapPinMain на исходную позицию */
+    mapPinMain.style = `left: 570px; top: 375px;`;
+    window.form.setAdFormAddress(getCoordinats(true));
 
     map.removeEventListener(`click`, onMapClick);
     map.removeEventListener(`keydown`, onMapKeydown);
@@ -78,6 +80,12 @@
     }
   }
 
+  function updateMap() {
+    window.pin.removePins(map);
+    window.card.removeCard(map);
+    window.load.loadingData(window.data.filteringAds, window.modals.showErrorMessage);
+  }
+
   function onMapClick(evt) {
     if (evt.button === 0) {
       changeMap(evt);
@@ -99,6 +107,7 @@
 
   window.map = {
     getCoordinats,
+    updateMap,
     setMapInactiveMode,
     setMapActiveMode
   };

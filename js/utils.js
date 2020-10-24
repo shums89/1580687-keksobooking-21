@@ -2,8 +2,6 @@
 
 (function () {
 
-  const errorLoadingTemplate = document.querySelector(`#error-loading`).content.querySelector(`.error-loading`);
-
   // Генерация случайного числа
   function getRandomInteger(min, max) {
     return Math.floor(min + Math.random() * (max + 1 - min));
@@ -45,35 +43,15 @@
     }
   }
 
-  function createErrorLoadingElement(errorMessage) {
-    const errorElement = errorLoadingTemplate.cloneNode(true);
-
-    errorElement.querySelector(`.error-loading__text`).textContent = errorMessage;
-    errorElement.classList.add(`error-loading-active`);
-
-    return errorElement;
-  }
-
-  function onCloseError() {
-    removeElements(document.body.querySelectorAll(`.error-loading-active`));
-  }
-
-  function onErrorKeydown(evt) {
-    if (evt.key === `Enter`) {
-      onCloseError();
+  // Проверка интервала
+  function checkInterval(parameter, value) {
+    if (value < window.data.ADS_DATA[parameter].MIN) {
+      value = window.data.ADS_DATA[parameter].MIN;
+    } else if (value > window.data.ADS_DATA[parameter].MAX) {
+      value = window.data.ADS_DATA[parameter].MAX;
     }
-  }
 
-  // Вывод ошибки при работе с сетью
-  function showErrorLoading(errorMessage) {
-    onCloseError();
-
-    const errorElement = createErrorLoadingElement(errorMessage);
-
-    document.body.prepend(errorElement);
-
-    errorElement.addEventListener(`click`, onCloseError);
-    errorElement.addEventListener(`keydown`, onErrorKeydown);
+    return value;
   }
 
   window.utils = {
@@ -83,7 +61,7 @@
     getEnding,
     setDisabled,
     removeElements,
-    showErrorLoading
+    checkInterval
   };
 
 })();
