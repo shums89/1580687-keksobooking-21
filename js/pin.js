@@ -23,6 +23,7 @@
     ads.forEach((ad, i) => {
       const pinElement = createPinElement(ad);
       pinElement.dataset.id = i;
+      pinElement.dataset.name = `map_pin`;
       pinsFragment.appendChild(pinElement);
     });
 

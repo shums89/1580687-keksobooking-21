@@ -8,17 +8,16 @@ function onMapPinMainMousedown(evt) {
       window.form.setFormActiveMode();
     }
 
-    window.form.setAdFormAddress(window.utils.getCoordinats(mapPinMain, map, false));
+    window.form.setAdFormAddress(window.map.getCoordinats(mapPinMain, false));
     window.pin.removePins(map);
     window.card.removeCard(map);
-    window.data.createAds();
-    window.pin.addPins(map);
+    window.data.getAds();
   }
 }
 
 const map = document.querySelector(`.map`);
 const mapPinMain = map.querySelector(`.map__pin--main`);
 
-window.form.setAdFormAddress(window.utils.getCoordinats(mapPinMain, map, true));
+window.form.setAdFormAddress(window.map.getCoordinats(mapPinMain, true));
 
 mapPinMain.addEventListener(`mousedown`, onMapPinMainMousedown);

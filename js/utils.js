@@ -2,6 +2,8 @@
 
 (function () {
 
+  const errorLoadingTemplate = document.querySelector(`#error-loading`).content.querySelector(`.error-loading`);
+
   // Генерация случайного числа
   function getRandomInteger(min, max) {
     return Math.floor(min + Math.random() * (max + 1 - min));
@@ -34,17 +36,6 @@
     });
   }
 
-  // Получить координаты элемента
-  function getCoordinats(element, location, isCenter = true) {
-    const locationData = location.getBoundingClientRect();
-    const elementData = element.getBoundingClientRect();
-
-    const x = Math.round(elementData.left - locationData.left + elementData.width / 2);
-    const y = Math.round(elementData.top - locationData.top + (!isCenter && element.scrollHeight || elementData.height / 2));
-
-    return `${x}, ${y}`;
-  }
-
   // Удалить элементы
   function removeElements(collection) {
     if (collection.length) {
@@ -54,6 +45,36 @@
     }
   }
 
+  function createErrorLoadingElement(errorMessage) {
+    const errorElement = errorLoadingTemplate.cloneNode(true);
+
+    errorElement.querySelector(`.error-loading__text`).textContent = errorMessage;
+    errorElement.classList.add(`error-loading-active`);
+
+    return errorElement;
+  }
+
+  function onCloseError() {
+    removeElements(document.body.querySelectorAll(`.error-loading-active`));
+  }
+
+  function onErrorKeydown(evt) {
+    if (evt.key === `Enter`) {
+      onCloseError();
+    }
+  }
+
+  // Вывод ошибки при работе с сетью
+  function showErrorLoading(errorMessage) {
+    onCloseError();
+
+    const errorElement = createErrorLoadingElement(errorMessage);
+
+    document.body.prepend(errorElement);
+
+    errorElement.addEventListener(`click`, onCloseError);
+    errorElement.addEventListener(`keydown`, onErrorKeydown);
+  }
 
   window.utils = {
     getRandomInteger,
@@ -61,8 +82,8 @@
     getCorrectOrderList,
     getEnding,
     setDisabled,
-    getCoordinats,
-    removeElements
+    removeElements,
+    showErrorLoading
   };
 
 })();
