@@ -54,14 +54,18 @@
 
     map.removeEventListener(`click`, onMapClick);
     map.removeEventListener(`keydown`, onMapKeydown);
+    mapFilters.removeEventListener(`change`, onMapFiltersChange);
   }
 
   function setMapActiveMode() {
     map.classList.remove(`map--faded`);
     window.utils.setDisabled(mapFiltersHousings, false);
 
+    window.network.load(window.data.saveLoadedAds, window.modals.showErrorMessage);
+
     map.addEventListener(`click`, onMapClick);
     map.addEventListener(`keydown`, onMapKeydown);
+    mapFilters.addEventListener(`change`, onMapFiltersChange);
   }
 
   function changeMap(evt) {
@@ -75,33 +79,49 @@
         window.card.removeCard(map);
         window.card.addCard(id, mapPins);
         break;
+
       case `map_card`:
         window.card.removeCard(map);
+        break;
     }
   }
 
   function updateMap() {
     window.pin.removePins(map);
     window.card.removeCard(map);
-    window.load.load(`GET`, null, window.data.filteringAds, window.modals.showErrorMessage);
+    window.filter.filtering();
   }
 
   function onMapClick(evt) {
     if (evt.button === 0) {
-      changeMap(evt);
+      window.debounce(changeMap(evt));
     }
   }
 
   function onMapKeydown(evt) {
     switch (evt.key) {
       case `Enter`:
-        changeMap(evt);
+        window.debounce(changeMap(evt));
         break;
 
       case `Escape`:
         evt.preventDefault();
         window.card.removeCard(map);
         break;
+    }
+  }
+
+  function onMapFiltersChange(evt) {
+    const target = evt.target;
+    const name = target.name || target.parentElement.name;
+
+    switch (name) {
+      case `housing-type`:
+      case `housing-price`:
+      case `housing-rooms`:
+      case `housing-guests`:
+      case `housing-features`:
+        window.debounce(window.filter.filtering(name, target.value));
     }
   }
 

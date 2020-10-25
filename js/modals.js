@@ -2,6 +2,8 @@
 
 (function () {
 
+  const adForm = document.querySelector(`.ad-form`);
+
   function showSuccessMessage(message) {
     showDialogMessage(`success`, message);
   }
@@ -20,7 +22,7 @@
 
     document.body.prepend(element);
 
-    function closeError() {
+    function closeDialogActive() {
       window.utils.removeElements(document.body.querySelectorAll(`.user-message-active`));
 
       if (elementButton) {
@@ -31,23 +33,23 @@
     }
 
     function onCloseError() {
-      closeError();
+      closeDialogActive();
     }
 
     function onErrorKeydown(evt) {
       if (evt.key === `Escape`) {
-        closeError();
+        closeDialogActive();
       }
     }
 
     function onElementButtonClick() {
-      closeError();
+      closeDialogActive();
       switch (nameOperation) {
-        case `loadData`:
-          window.map.updateMap();
+        case `GET`:
+          window.map.setMapActiveMode();
           break;
-        case `uploadData`:
-          // ! Добавить отправку данных
+        case `POST`:
+          window.network.upload(new FormData(adForm), window.form.showSuccessSend, showErrorMessage);
           break;
       }
     }

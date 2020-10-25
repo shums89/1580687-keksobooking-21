@@ -71,7 +71,7 @@
     if (adForm.checkValidity()) {
       evt.preventDefault();
 
-      window.load.load(`POST`, new FormData(adForm), showSuccessSend, window.modals.showErrorMessage);
+      window.network.upload(new FormData(adForm), showSuccessSend, window.modals.showErrorMessage);
     }
   }
 
@@ -138,7 +138,8 @@
     addAdFormEventListeners,
     removeAdFormEventListeners,
     setFormInactiveMode,
-    setFormActiveMode
+    setFormActiveMode,
+    showSuccessSend
   };
 
 })();

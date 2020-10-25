@@ -2,13 +2,14 @@
 
 (function () {
 
-  let ads = [];
+  let loadedAds = [];
+  let filteredAds = [];
 
   const mapOverlay = document.querySelector(`.map__overlay`);
   const mapPinMain = document.querySelector(`.map__pin--main`);
 
   const ADS_DATA = {
-    NUMBER_OF_ADS: 8, // количество обьявлений
+    NUMBER_OF_ADS: 5, // количество обьявлений
     TAG_SIZE: {
       WIDTH: 50,
       HEIGHT: 70
@@ -65,25 +66,24 @@
     }
   };
 
-  // Получение массива объявлений
-  function filteringAds(loadedAds) {
-    window.data.ads = [];
+  function saveLoadedAds(data) {
+    window.data.loadedAds = [];
 
-    // ! Добавить фильтрацию объявлений в зависимости от map__filters-container
-    for (let i = 0; i < ADS_DATA.NUMBER_OF_ADS; i++) {
-      window.data.ads.push(loadedAds[i]);
-    }
+    data.forEach((element) => {
+      element.matches = [];
+      window.data.loadedAds.push(element);
+    });
 
-    // отрисовываем метки именно здесь, потому что не знаем когда именно получим данные с сервера
-    window.pin.addPins(document.querySelector(`.map`));
+    window.map.updateMap();
   }
 
   window.data = {
     ADS_DATA,
     TYPE_HOUSING,
     CAPACITY_VALIDITY,
-    ads,
-    filteringAds
+    loadedAds,
+    filteredAds,
+    saveLoadedAds
   };
 
 })();

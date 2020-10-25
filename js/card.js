@@ -89,7 +89,7 @@
 
   // Добавить карточку объявления
   function addCard(index, location) {
-    const cardElement = createCardElement(window.data.ads[index]);
+    const cardElement = createCardElement(window.data.filteredAds[index]);
 
     location.after(cardElement);
   }

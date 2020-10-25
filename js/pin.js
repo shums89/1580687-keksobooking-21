@@ -17,22 +17,26 @@
   }
 
   // Создание Фрагмента похожего объявления
-  function createPinsFragment(ads) {
+  function createPinsFragment() {
     const pinsFragment = document.createDocumentFragment();
+    const data = window.data.filteredAds;
+    const lengthMin = Math.min(window.data.ADS_DATA.NUMBER_OF_ADS, data.length);
 
-    ads.forEach((ad, i) => {
-      const pinElement = createPinElement(ad);
+    for (let i = 0; i < lengthMin; i++) {
+      const pinElement = createPinElement(data[i]);
       pinElement.dataset.id = i;
       pinElement.dataset.name = `map_pin`;
       pinsFragment.appendChild(pinElement);
-    });
+    }
 
     return pinsFragment;
   }
 
   // Добавление объявлений на карту
   function addPins(location) {
-    const pinsFragment = createPinsFragment(window.data.ads);
+    window.pin.removePins(location);
+    window.card.removeCard(location);
+    const pinsFragment = createPinsFragment();
 
     location.appendChild(pinsFragment);
   }
