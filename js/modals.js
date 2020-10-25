@@ -23,7 +23,9 @@
     function closeError() {
       window.utils.removeElements(document.body.querySelectorAll(`.user-message-active`));
 
-      elementButton.removeEventListener(`click`, onElementButtonClick);
+      if (elementButton) {
+        elementButton.removeEventListener(`click`, onElementButtonClick);
+      }
       document.removeEventListener(`click`, onCloseError);
       document.removeEventListener(`keydown`, onErrorKeydown);
     }
@@ -32,8 +34,10 @@
       closeError();
     }
 
-    function onErrorKeydown() {
-      closeError();
+    function onErrorKeydown(evt) {
+      if (evt.key === `Escape`) {
+        closeError();
+      }
     }
 
     function onElementButtonClick() {

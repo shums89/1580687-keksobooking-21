@@ -83,7 +83,7 @@
   function updateMap() {
     window.pin.removePins(map);
     window.card.removeCard(map);
-    window.load.loadingData(window.data.filteringAds, window.modals.showErrorMessage);
+    window.load.load(`GET`, null, window.data.filteringAds, window.modals.showErrorMessage);
   }
 
   function onMapClick(evt) {

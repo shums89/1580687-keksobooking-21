@@ -20,7 +20,11 @@
     LOCATION_Y: {
       MIN: 130,
       MAX: 630
-    } // координата Y метки на карте
+    }, // координата Y метки на карте
+    URLS: {
+      'GET': `https://21.javascript.pages.academy/keksobooking/data`,
+      'POST': `https://21.javascript.pages.academy/keksobooking`
+    }
   };
 
   const TYPE_HOUSING = {

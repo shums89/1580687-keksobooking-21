@@ -55,19 +55,29 @@
 
   function resetAdForm() {
     adForm.reset();
+    adFormPrice.min = 0;
     adFormPrice.placeholder = 0;
 
     window.map.setMapInactiveMode();
     setFormInactiveMode();
   }
 
-  function onAdFormSubmitClick() {
-    // evt.preventDefault();
-    // setInactiveMode
+  function showSuccessSend(message) {
+    resetAdForm();
+    window.modals.showSuccessMessage(message);
+  }
+
+  function onAdFormSubmitClick(evt) {
+    if (adForm.checkValidity()) {
+      evt.preventDefault();
+
+      window.load.load(`POST`, new FormData(adForm), showSuccessSend, window.modals.showErrorMessage);
+    }
   }
 
   function onAdFormResetClick(evt) {
     if (evt.button === 0) {
+      evt.preventDefault();
       resetAdForm();
     }
   }
@@ -101,8 +111,6 @@
 
     // Заблокировать ввод объявления
     window.utils.setDisabled(adFormFieldsets);
-
-    // Добавить сброс полей ввода
 
     removeAdFormEventListeners();
   }
