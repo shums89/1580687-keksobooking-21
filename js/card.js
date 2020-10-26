@@ -2,8 +2,10 @@
 
 (function () {
 
-  const cardTemplate = document.querySelector(`#card`).content.querySelector(`.map__card`);
+  const map = document.querySelector(`.map`);
+  const mapPins = map.querySelector(`.map__pins`);
 
+  const cardTemplate = document.querySelector(`#card`).content.querySelector(`.map__card`);
   const popupFeatureTemplate = cardTemplate.querySelector(`.popup__features`).querySelector(`.popup__feature`);
   const popupPhotoTemplate = cardTemplate.querySelector(`.popup__photos`).querySelector(`.popup__photo`);
 
@@ -87,18 +89,29 @@
     return cardElement;
   }
 
+  function removeActivePin() {
+    const collection = document.querySelectorAll(`.map__pin--active`);
+
+    if (collection.length) {
+      collection.forEach((element) => {
+        element.classList.remove(`map__pin--active`);
+      });
+    }
+  }
+
   // Добавить карточку объявления
-  function addCard(index, location) {
+  function addCard(index) {
     const cardElement = createCardElement(window.data.filteredAds[index]);
 
-    location.after(cardElement);
+    mapPins.after(cardElement);
   }
 
   // Удалить карточку объявления
-  function removeCard(location) {
-    const collectionCard = location.querySelectorAll(`article[class="map__card popup"]`);
+  function removeCard() {
+    const collectionCard = map.querySelectorAll(`article[class="map__card popup"]`);
 
     window.utils.removeElements(collectionCard);
+    removeActivePin();
   }
 
   window.card = {

@@ -70,8 +70,10 @@
     window.data.loadedAds = [];
 
     data.forEach((element) => {
-      element.matches = [];
-      window.data.loadedAds.push(element);
+      if (element.hasOwnProperty(`offer`)) {
+        element.restrictions = [];
+        window.data.loadedAds.push(element);
+      }
     });
 
     window.map.updateMap();

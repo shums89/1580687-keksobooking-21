@@ -2,6 +2,7 @@
 
 (function () {
 
+  const mapPins = document.querySelector(`.map`).querySelector(`.map__pins`);
   const pinTemplate = document.querySelector(`#pin`).content.querySelector(`.map__pin`);
 
   // Создание DOM-элемента для Фрагмента похожего объявления
@@ -33,17 +34,18 @@
   }
 
   // Добавление объявлений на карту
-  function addPins(location) {
-    window.pin.removePins(location);
-    window.card.removeCard(location);
+  function addPins() {
+    window.pin.removePins();
+    window.card.removeCard();
+
     const pinsFragment = createPinsFragment();
 
-    location.appendChild(pinsFragment);
+    mapPins.appendChild(pinsFragment);
   }
 
   // Удалить метки
-  function removePins(location) {
-    const collectionPin = location.querySelectorAll(`button[class="map__pin"]`);
+  function removePins() {
+    const collectionPin = mapPins.querySelectorAll(`button[data-name="map_pin"]`);
 
     window.utils.removeElements(collectionPin);
   }

@@ -46,8 +46,8 @@
     resetFilters(mapFiltersFeatures);
 
     // Очистить карту
-    window.pin.removePins(map);
-    window.card.removeCard(map);
+    window.pin.removePins();
+    window.card.removeCard();
 
     mapPinMain.style = `left: 570px; top: 375px;`;
     window.form.setAdFormAddress(getCoordinats(true));
@@ -76,19 +76,23 @@
       case `map_pin`:
         const id = target.dataset.id || target.parentElement.dataset.id;
 
-        window.card.removeCard(map);
-        window.card.addCard(id, mapPins);
+
+        window.card.removeCard();
+        window.card.addCard(id);
+
+        mapPins.querySelector(`button[data-id="${id}"]`).classList.add(`map__pin--active`);
+
         break;
 
       case `map_card`:
-        window.card.removeCard(map);
+        window.card.removeCard();
         break;
     }
   }
 
   function updateMap() {
-    window.pin.removePins(map);
-    window.card.removeCard(map);
+    window.pin.removePins();
+    window.card.removeCard();
     window.filter.filtering();
   }
 
@@ -106,7 +110,7 @@
 
       case `Escape`:
         evt.preventDefault();
-        window.card.removeCard(map);
+        window.card.removeCard();
         break;
     }
   }
@@ -120,8 +124,10 @@
       case `housing-price`:
       case `housing-rooms`:
       case `housing-guests`:
-      case `housing-features`:
-        window.debounce(window.filter.filtering(name, target.value));
+        window.debounce(window.filter.filtering(name.split(`-`)[1], target.value));
+        break;
+      case `features`:
+        window.debounce(window.filter.filtering(name, target.value, target.checked));
     }
   }
 

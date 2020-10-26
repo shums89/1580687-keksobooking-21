@@ -2,6 +2,21 @@
 
 (function () {
 
+  const HOUSING_PRICE = {
+    'middle': {
+      MIN: 10000,
+      MAX: 50000
+    },
+    'low': {
+      MIN: 0,
+      MAX: 10000
+    },
+    'high': {
+      MIN: 50000,
+      MAX: Number.POSITIVE_INFINITY
+    }
+  };
+
   function getDistance(element) {
     const pinMainCoords = window.map.getCoordinats(false).split(`,`);
 
@@ -21,42 +36,48 @@
     return [...newSet];
   }
 
-  function checkSimpleChoice(nameFilter, value) {
-    window.data.loadedAds.forEach((element) => {
-      if (String(element.offer[nameFilter]) === value || value === `any`) {
-        element.matches = element.matches.filter((item) => item !== nameFilter);
-      } else {
-        element.matches = addUniqueElement(nameFilter, element.matches);
-      }
-    });
-  }
+  function checkCondition(element, nameFilter, value, checked) {
+    let condition = false;
 
-  function applyFilter(nameFilter, value) {
     switch (nameFilter) {
-      case `housing-type`:
-      case `housing-rooms`:
-      case `housing-guests`:
-        checkSimpleChoice(nameFilter.split(`-`)[1], value);
+      case `type`:
+      case `rooms`:
+      case `guests`:
+        condition = (value === `any` || String(element.offer[nameFilter]) === value);
         break;
+      case `price`:
+        condition = (value === `any` || element.offer[nameFilter] >= HOUSING_PRICE[value].MIN && element.offer[nameFilter] <= HOUSING_PRICE[value].MAX);
+        break;
+      case `features`:
+        condition = (!checked || element.offer[nameFilter].includes(value) && checked);
     }
+
+    return condition;
   }
 
-  function filtering(nameFilter, value) {
+  function filtering(nameFilter, value, checked = false) {
     window.data.filteredAds = [];
-
-    if (window.data.loadedAds.length) {
-      applyFilter(nameFilter, value);
-    }
+    let parametrUpdating;
 
     window.data.loadedAds.forEach((element) => {
-      if (!element.matches.length) {
+      parametrUpdating = (nameFilter === `features`) ? value : nameFilter;
+
+      if (nameFilter) {
+        if (checkCondition(element, nameFilter, value, checked)) {
+          element.restrictions = element.restrictions.filter((item) => item !== parametrUpdating);
+        } else {
+          element.restrictions = addUniqueElement(parametrUpdating, element.restrictions);
+        }
+      }
+
+      if (!element.restrictions.length) {
         window.data.filteredAds.push(element);
       }
     });
 
     window.data.filteredAds = sortByDistance(window.data.filteredAds);
 
-    window.pin.addPins(document.querySelector(`.map`));
+    window.pin.addPins();
   }
 
   window.filter = {
