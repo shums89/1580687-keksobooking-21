@@ -10,7 +10,7 @@
     const pinElement = pinTemplate.cloneNode(true);
     const pinElementImg = pinElement.querySelector(`img`);
 
-    pinElement.style = `left: ${ad.location.x - window.data.ADS_DATA.TAG_SIZE.WIDTH / 2}px; top: ${ad.location.y - window.data.ADS_DATA.TAG_SIZE.HEIGHT}px;`;
+    pinElement.style = `left: ${ad.location.x - window.data.ADS_DATA.TAG_SIZE.width / 2}px; top: ${ad.location.y - window.data.ADS_DATA.TAG_SIZE.height}px;`;
     pinElementImg.src = ad.author.avatar;
     pinElementImg.alt = ad.offer.title;
 
@@ -18,27 +18,27 @@
   }
 
   // Создание Фрагмента похожего объявления
-  function createPinsFragment() {
+  function createPinsFragment(arr) {
     const pinsFragment = document.createDocumentFragment();
-    const data = window.data.filteredAds;
-    const lengthMin = Math.min(window.data.ADS_DATA.NUMBER_OF_ADS, data.length);
 
-    for (let i = 0; i < lengthMin; i++) {
-      const pinElement = createPinElement(data[i]);
-      pinElement.dataset.id = i;
+    arr.slice(0, window.data.ADS_DATA.NUMBER_OF_ADS).forEach((index) => {
+      const pinElement = createPinElement(window.data.loadedAds[index]);
+
+      pinElement.dataset.id = index;
       pinElement.dataset.name = `map_pin`;
+
       pinsFragment.appendChild(pinElement);
-    }
+    });
 
     return pinsFragment;
   }
 
   // Добавление объявлений на карту
-  function addPins() {
-    window.pin.removePins();
-    window.card.removeCard();
+  function renderPins(arr) {
+    removePins();
+    window.card.removeCards();
 
-    const pinsFragment = createPinsFragment();
+    const pinsFragment = createPinsFragment(arr);
 
     mapPins.appendChild(pinsFragment);
   }
@@ -50,9 +50,18 @@
     window.utils.removeElements(collectionPin);
   }
 
+  function removeActivePins() {
+    const collection = document.querySelectorAll(`.map__pin--active`);
+
+    collection.forEach((element) => {
+      element.classList.remove(`map__pin--active`);
+    });
+  }
+
   window.pin = {
-    addPins,
-    removePins
+    renderPins,
+    removePins,
+    removeActivePins
   };
 
 })();

@@ -10,20 +10,6 @@
 
   const mapFiltersHousings = mapFilters.querySelectorAll(`[id^="housing-"]`);
 
-  // Сбросить фильтры на карте
-  function resetFilters(collection) {
-    collection.forEach((element) => {
-      switch (element.tagName) {
-        case `SELECT`:
-          element.value = `any`;
-          break;
-        case `INPUT`:
-          element.checked = false;
-          break;
-      }
-    });
-  }
-
   // Получить координаты элемента
   function getCoordinats(isCenter = true) {
     const mapData = map.getBoundingClientRect();
@@ -36,24 +22,18 @@
   }
 
   function setMapInactiveMode() {
-    const mapFiltersFeatures = mapFilters.querySelector(`#housing-features`).querySelectorAll(`input[name="features"]`);
-
     map.classList.add(`map--faded`);
     window.utils.setDisabled(mapFiltersHousings);
 
-    // Сбросить фильтры
-    resetFilters(mapFiltersHousings);
-    resetFilters(mapFiltersFeatures);
-
-    // Очистить карту
+    mapFilters.reset();
     window.pin.removePins();
-    window.card.removeCard();
+    window.card.removeCards();
 
     mapPinMain.style = `left: 570px; top: 375px;`;
     window.form.setAdFormAddress(getCoordinats(true));
 
-    map.removeEventListener(`click`, onMapClick);
-    map.removeEventListener(`keydown`, onMapKeydown);
+    mapPins.removeEventListener(`click`, onMapPinsClick);
+    mapPins.removeEventListener(`keydown`, onMapPinsKeydown);
     mapFilters.removeEventListener(`change`, onMapFiltersChange);
   }
 
@@ -61,74 +41,61 @@
     map.classList.remove(`map--faded`);
     window.utils.setDisabled(mapFiltersHousings, false);
 
-    window.network.load(window.data.saveLoadedAds, window.modals.showErrorMessage);
+    updateMap();
 
-    map.addEventListener(`click`, onMapClick);
-    map.addEventListener(`keydown`, onMapKeydown);
+    mapPins.addEventListener(`click`, onMapPinsClick);
+    mapPins.addEventListener(`keydown`, onMapPinsKeydown);
     mapFilters.addEventListener(`change`, onMapFiltersChange);
   }
 
+
   function changeMap(evt) {
-    const target = evt.target;
-    const name = target.dataset.name || target.parentElement.dataset.name;
+    const mapPin = evt.target.closest(`button[class="map__pin"]`);
 
-    switch (name) {
-      case `map_pin`:
-        const id = target.dataset.id || target.parentElement.dataset.id;
+    if (mapPin) {
+      window.card.removeCards();
+      window.card.renderCard(mapPin.dataset.id);
 
+      mapPin.classList.add(`map__pin--active`);
 
-        window.card.removeCard();
-        window.card.addCard(id);
-
-        mapPins.querySelector(`button[data-id="${id}"]`).classList.add(`map__pin--active`);
-
-        break;
-
-      case `map_card`:
-        window.card.removeCard();
-        break;
+      const card = map.querySelector(`.popup__close`);
+      card.addEventListener(`click`, onCardPopupCloseClick);
     }
   }
 
   function updateMap() {
     window.pin.removePins();
-    window.card.removeCard();
-    window.filter.filtering();
+    window.card.removeCards();
+    window.utils.debounce(window.pin.renderPins(window.filter.filtering()));
   }
 
-  function onMapClick(evt) {
+  function onMapPinsClick(evt) {
     if (evt.button === 0) {
-      window.debounce(changeMap(evt));
+      window.utils.debounce(changeMap(evt));
     }
   }
 
-  function onMapKeydown(evt) {
+  function onMapPinsKeydown(evt) {
     switch (evt.key) {
       case `Enter`:
-        window.debounce(changeMap(evt));
+        window.utils.debounce(changeMap(evt));
         break;
 
       case `Escape`:
         evt.preventDefault();
-        window.card.removeCard();
+        window.card.removeCards();
         break;
     }
   }
 
-  function onMapFiltersChange(evt) {
-    const target = evt.target;
-    const name = target.name || target.parentElement.name;
+  function onMapFiltersChange() {
+    window.utils.debounce(window.pin.renderPins(window.filter.filtering()));
+  }
 
-    switch (name) {
-      case `housing-type`:
-      case `housing-price`:
-      case `housing-rooms`:
-      case `housing-guests`:
-        window.debounce(window.filter.filtering(name.split(`-`)[1], target.value));
-        break;
-      case `features`:
-        window.debounce(window.filter.filtering(name, target.value, target.checked));
-    }
+  function onCardPopupCloseClick(evt) {
+    evt.target.removeEventListener(`click`, onCardPopupCloseClick);
+
+    window.card.removeCards();
   }
 
   window.map = {

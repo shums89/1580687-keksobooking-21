@@ -2,6 +2,8 @@
 
 (function () {
 
+  const mapFilters = document.querySelector(`.map`).querySelector(`.map__filters`);
+
   const HOUSING_PRICE = {
     'middle': {
       MIN: 10000,
@@ -17,10 +19,10 @@
     }
   };
 
-  function getDistance(element) {
+  function getDistance(index) {
     const pinMainCoords = window.map.getCoordinats(false).split(`,`);
 
-    return Math.sqrt(Math.abs(Math.pow(pinMainCoords[0] - element.location.x, 2) + Math.pow(pinMainCoords[1] - element.location.y, 2)));
+    return Math.sqrt(Math.abs(Math.pow(pinMainCoords[0] - window.data.loadedAds[index].location.x, 2) + Math.pow(pinMainCoords[1] - window.data.loadedAds[index].location.y, 2)));
   }
 
   function sortByDistance(data) {
@@ -36,48 +38,57 @@
     return [...newSet];
   }
 
-  function checkCondition(element, nameFilter, value, checked) {
-    let condition = false;
+  function filterByType(element) {
+    const value = element.offer.type;
+    const valueFilter = mapFilters.querySelector(`#housing-type`).value;
 
-    switch (nameFilter) {
-      case `type`:
-      case `rooms`:
-      case `guests`:
-        condition = (value === `any` || String(element.offer[nameFilter]) === value);
-        break;
-      case `price`:
-        condition = (value === `any` || element.offer[nameFilter] >= HOUSING_PRICE[value].MIN && element.offer[nameFilter] <= HOUSING_PRICE[value].MAX);
-        break;
-      case `features`:
-        condition = (!checked || element.offer[nameFilter].includes(value) && checked);
-    }
-
-    return condition;
+    return (valueFilter === `any` || value === valueFilter);
   }
 
-  function filtering(nameFilter, value, checked = false) {
-    window.data.filteredAds = [];
-    let parametrUpdating;
+  function filterByPrice(element) {
+    const value = element.offer.price;
+    const valueFilter = mapFilters.querySelector(`#housing-price`).value;
 
-    window.data.loadedAds.forEach((element) => {
-      parametrUpdating = (nameFilter === `features`) ? value : nameFilter;
+    return (valueFilter === `any` || value >= HOUSING_PRICE[valueFilter].MIN && value <= HOUSING_PRICE[valueFilter].MAX);
+  }
 
-      if (nameFilter) {
-        if (checkCondition(element, nameFilter, value, checked)) {
-          element.restrictions = element.restrictions.filter((item) => item !== parametrUpdating);
-        } else {
-          element.restrictions = addUniqueElement(parametrUpdating, element.restrictions);
-        }
+  function filterByRooms(element) {
+    const value = String(element.offer.rooms);
+    const valueFilter = mapFilters.querySelector(`#housing-rooms`).value;
+
+    return (valueFilter === `any` || value === valueFilter);
+  }
+
+  function filterByGuests(element) {
+    const value = String(element.offer.guests);
+    const valueFilter = mapFilters.querySelector(`#housing-guests`).value;
+
+    return (valueFilter === `any` || value === valueFilter);
+  }
+
+  function filterByFeatures(element) {
+    const filterFeatures = mapFilters.querySelector(`#housing-features`).querySelectorAll(`input[name="features"]`);
+
+    for (let i = 0; i < filterFeatures.length; i++) {
+      if (filterFeatures[i].checked && !element.offer.features.includes(filterFeatures[i].value)) {
+        return false;
       }
+    }
 
-      if (!element.restrictions.length) {
-        window.data.filteredAds.push(element);
+    return true;
+  }
+
+  function filtering() {
+    window.data.filteredAds = [];
+    let filteredAds = [];
+
+    window.data.loadedAds.forEach((element, i) => {
+      if (filterByType(element) && filterByPrice(element) && filterByRooms(element) && filterByGuests(element) && filterByFeatures(element)) {
+        filteredAds = addUniqueElement(i, filteredAds);
       }
     });
 
-    window.data.filteredAds = sortByDistance(window.data.filteredAds);
-
-    window.pin.addPins();
+    return sortByDistance(filteredAds);
   }
 
   window.filter = {

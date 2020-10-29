@@ -13,6 +13,11 @@
   const adFormRoomNumber = adForm.querySelector(`#room_number`);
   const adFormCapacity = adForm.querySelector(`#capacity`);
 
+  const adFormHeaderUploadInput = adForm.querySelector(`.ad-form-header__upload input[type=file]`);
+  const adFormHeaderUploadPreview = adForm.querySelector(`.ad-form-header__upload .ad-form-header__preview img`);
+  const adFormUploadInput = adForm.querySelector(`.ad-form__upload input[type=file]`);
+  // const adFormUploadPreview = adForm.querySelector(`.ad-form__photo`);
+
   function checkType() {
     const typeValue = adFormType.value;
     const newValue = window.data.TYPE_HOUSING[typeValue].minPrice;
@@ -21,25 +26,11 @@
     adFormPrice.placeholder = newValue;
   }
 
-  function checkTime(element) {
-    let textValidityTimein = ``;
-    let textValidityTimeout = ``;
-
+  function checkTime() {
     if (adFormTimeout.value !== adFormTimein.value) {
-      switch (element) {
-        case `timein`:
-          textValidityTimeout = `Время выезда должно быть до ${adFormTimein.value}`;
-          break;
-        case `timeout`:
-          textValidityTimein = `Время заезда должно быть после ${adFormTimeout.value}`;
-          break;
-      }
+      adFormTimeout.setCustomValidity(`Время выезда должно быть до ${adFormTimein.value}`);
     }
 
-    adFormTimein.setCustomValidity(textValidityTimein);
-    adFormTimeout.setCustomValidity(textValidityTimeout);
-
-    adFormTimein.reportValidity();
     adFormTimeout.reportValidity();
   }
 
@@ -54,24 +45,36 @@
   }
 
   function resetAdForm() {
-    adForm.reset();
     adFormPrice.min = 0;
     adFormPrice.placeholder = 0;
+    window.data.loadedAds = [];
 
+    adForm.reset();
     window.map.setMapInactiveMode();
     setFormInactiveMode();
   }
 
-  function showSuccessSend(message) {
-    resetAdForm();
-    window.modals.showSuccessMessage(message);
+  function uploadAdForm() {
+    const SUCCESS = {
+      onSuccess: window.modals.showDialogMessage,
+      callback: resetAdForm
+    };
+    const ERROR = {
+      onError: window.modals.showDialogMessage,
+      callback: uploadAdForm
+    };
+
+    window.network.upload(new FormData(adForm), SUCCESS, ERROR);
   }
 
   function onAdFormSubmitClick(evt) {
+    checkType();
+    checkTime();
+    checkRoomNumber();
+
     if (adForm.checkValidity()) {
       evt.preventDefault();
-
-      window.network.upload(new FormData(adForm), showSuccessSend, window.modals.showErrorMessage);
+      uploadAdForm();
     }
   }
 
@@ -82,24 +85,12 @@
     }
   }
 
-  function onAdFormChange(evt) {
-    const id = evt.target.id;
+  function onHeaderUploadChange() {
+    window.utils.renderPhotoPreview(adFormHeaderUploadInput, adFormHeaderUploadPreview);
+  }
 
-    switch (id) {
-      case `type`:
-        checkType();
-        break;
-
-      case `room_number`:
-      case `capacity`:
-        checkRoomNumber();
-        break;
-
-      case `timein`:
-      case `timeout`:
-        checkTime(id);
-        break;
-    }
+  function onUploadChange() {
+    // TODO: загрузка фотки жилья
   }
 
   function setAdFormAddress(coordinats) {
@@ -108,38 +99,29 @@
 
   function setFormInactiveMode() {
     adForm.classList.add(`ad-form--disabled`);
-
-    // Заблокировать ввод объявления
     window.utils.setDisabled(adFormFieldsets);
 
-    removeAdFormEventListeners();
+    adFormSubmit.removeEventListener(`click`, onAdFormSubmitClick);
+    adFormReset.removeEventListener(`click`, onAdFormResetClick);
+    adFormHeaderUploadInput.removeEventListener(`change`, onHeaderUploadChange);
+    adFormUploadInput.removeEventListener(`change`, onUploadChange);
   }
 
   function setFormActiveMode() {
     adForm.classList.remove(`ad-form--disabled`);
     window.utils.setDisabled(adFormFieldsets, false);
-    addAdFormEventListeners();
-  }
 
-  function addAdFormEventListeners() {
     adFormSubmit.addEventListener(`click`, onAdFormSubmitClick);
     adFormReset.addEventListener(`click`, onAdFormResetClick);
-    adForm.addEventListener(`change`, onAdFormChange);
-  }
-
-  function removeAdFormEventListeners() {
-    adFormSubmit.removeEventListener(`click`, onAdFormSubmitClick);
-    adFormReset.removeEventListener(`click`, onAdFormResetClick);
-    adForm.removeEventListener(`change`, onAdFormChange);
+    adFormHeaderUploadInput.addEventListener(`change`, onHeaderUploadChange);
+    adFormUploadInput.addEventListener(`change`, onUploadChange);
   }
 
   window.form = {
     setAdFormAddress,
-    addAdFormEventListeners,
-    removeAdFormEventListeners,
     setFormInactiveMode,
     setFormActiveMode,
-    showSuccessSend
+    uploadAdForm
   };
 
 })();

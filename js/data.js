@@ -3,29 +3,21 @@
 (function () {
 
   let loadedAds = [];
-  let filteredAds = [];
-
-  const mapOverlay = document.querySelector(`.map__overlay`);
-  const mapPinMain = document.querySelector(`.map__pin--main`);
 
   const ADS_DATA = {
-    NUMBER_OF_ADS: 5, // количество обьявлений
+    NUMBER_OF_ADS: 5,
     TAG_SIZE: {
-      WIDTH: 50,
-      HEIGHT: 70
-    }, // размеры метки map_pin
+      width: 50,
+      height: 70
+    },
     LOCATION_X: {
-      MIN: 0 - mapPinMain.offsetWidth / 2,
-      MAX: mapOverlay.offsetWidth - mapPinMain.offsetWidth / 2
-    }, // координата X метки на карте
+      min: 0,
+      max: 0
+    },
     LOCATION_Y: {
-      MIN: 130,
-      MAX: 630
-    }, // координата Y метки на карте
-    URLS: {
-      'GET': `https://21.javascript.pages.academy/keksobooking/data`,
-      'POST': `https://21.javascript.pages.academy/keksobooking`
-    }
+      min: 130,
+      max: 630
+    },
   };
 
   const TYPE_HOUSING = {
@@ -70,13 +62,22 @@
     window.data.loadedAds = [];
 
     data.forEach((element) => {
-      if (element.hasOwnProperty(`offer`)) {
+      if (element.offer) {
         element.restrictions = [];
         window.data.loadedAds.push(element);
       }
     });
 
-    window.map.updateMap();
+    window.map.setMapActiveMode();
+    window.form.setFormActiveMode();
+  }
+
+  function loadAds() {
+    const ERROR = {
+      onError: window.modals.showDialogMessage,
+      callback: window.data.loadAds
+    };
+    window.network.load(window.data.saveLoadedAds, ERROR);
   }
 
   window.data = {
@@ -84,8 +85,8 @@
     TYPE_HOUSING,
     CAPACITY_VALIDITY,
     loadedAds,
-    filteredAds,
-    saveLoadedAds
+    saveLoadedAds,
+    loadAds
   };
 
 })();
