@@ -69,7 +69,7 @@
     };
   }
 
-  function renderPhotoPreview(fileChooser, previewElement) {
+  function getPhotoSrc(fileChooser, callback) {
     const reader = new FileReader();
     const file = fileChooser.files[0];
     const fileName = file.name.toLowerCase();
@@ -79,8 +79,7 @@
     });
 
     function onReaderLoad() {
-      reader.removeEventListener(`load`, onReaderLoad);
-      previewElement.src = reader.result;
+      callback(reader.result);
     }
 
     if (matches) {
@@ -98,7 +97,7 @@
     removeElements,
     checkInterval,
     debounce,
-    renderPhotoPreview
+    getPhotoSrc
   };
 
 })();

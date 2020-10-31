@@ -32,7 +32,7 @@
     }
   };
 
-  function load(onSuccess, error) {
+  function load(onSuccess, onError) {
     const xhr = new XMLHttpRequest();
     xhr.responseType = `json`;
     xhr.timeout = TIMEOUT_IN_MS;
@@ -43,49 +43,50 @@
           onSuccess(xhr.response);
           break;
         case `error`:
-          error.onError(`error`, SERVER_CODE[xhr.status].message, error.callback);
+          onError(SERVER_CODE[xhr.status].message);
           break;
         default:
-          error.onError(`error`, `Статус ответа: ${xhr.status} ${xhr.statusText}`, error.callback);
+          onError(`Статус ответа: ${xhr.status} ${xhr.statusText}`);
       }
     });
 
     xhr.addEventListener(`error`, function () {
-      error.onError(`error`, `Произошла ошибка соединения`, error.callback);
+      onError(`Произошла ошибка соединения`);
     });
 
     xhr.addEventListener(`timeout`, function () {
-      error.onError(`error`, `Запрос не успел выполниться за ${xhr.timeout} мс`, error.callback);
+      onError(`Запрос не успел выполниться за ${xhr.timeout} мс`);
     });
 
     xhr.open(`GET`, URLS.get);
     xhr.send();
   }
 
-  function upload(data, success, error) {
+  function upload(data, onSuccess, onError) {
     const xhr = new XMLHttpRequest();
+
     xhr.responseType = `json`;
     xhr.timeout = TIMEOUT_IN_MS;
 
     xhr.addEventListener(`load`, function () {
       switch (SERVER_CODE[xhr.status].type) {
         case `success`:
-          success.onSuccess(`success`, `Ваша заявка успешно отправлена`, success.callback);
+          onSuccess(`Ваша заявка успешно отправлена`);
           break;
         case `error`:
-          error.onError(`error`, SERVER_CODE[xhr.status].message, error.callback);
+          onError(SERVER_CODE[xhr.status].message);
           break;
         default:
-          error.onError(`error`, `Статус ответа: ${xhr.status} ${xhr.statusText}`, error.callback);
+          onError(`Статус ответа: ${xhr.status} ${xhr.statusText}`);
       }
     });
 
     xhr.addEventListener(`error`, function () {
-      error.onError(`error`, `Произошла ошибка соединения`, error.callback);
+      onError(`Произошла ошибка соединения`);
     });
 
     xhr.addEventListener(`timeout`, function () {
-      error.onError(`error`, `Запрос не успел выполниться за ${xhr.timeout} мс`, error.callback);
+      onError(`Запрос не успел выполниться за ${xhr.timeout} мс`);
     });
 
     xhr.open(`POST`, URLS.post);

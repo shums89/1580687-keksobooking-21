@@ -2,6 +2,25 @@
 
 (function () {
 
+  const CAPACITY_VALIDITY = {
+    '1': {
+      values: [`1`],
+      textError: `1 комната — «для 1 гостя»`
+    },
+    '2': {
+      values: [`1`, `2`],
+      textError: `для 2 гостей» или «для 1 гостя»`
+    },
+    '3': {
+      values: [`1`, `2`, `3`],
+      textError: `«для 3 гостей», «для 2 гостей» или «для 1 гостя»`
+    },
+    '100': {
+      values: [`0`],
+      textError: `«не для гостей»`
+    }
+  };
+
   const adForm = document.querySelector(`.ad-form`);
   const adFormSubmit = adForm.querySelector(`.ad-form__submit`);
   const adFormReset = adForm.querySelector(`.ad-form__reset`);
@@ -12,11 +31,10 @@
   const adFormTimeout = adForm.querySelector(`#timeout`);
   const adFormRoomNumber = adForm.querySelector(`#room_number`);
   const adFormCapacity = adForm.querySelector(`#capacity`);
-
   const adFormHeaderUploadInput = adForm.querySelector(`.ad-form-header__upload input[type=file]`);
   const adFormHeaderUploadPreview = adForm.querySelector(`.ad-form-header__upload .ad-form-header__preview img`);
   const adFormUploadInput = adForm.querySelector(`.ad-form__upload input[type=file]`);
-  // const adFormUploadPreview = adForm.querySelector(`.ad-form__photo`);
+  const adFormUploadPreview = adForm.querySelector(`.ad-form__photo`);
 
   function checkType() {
     const typeValue = adFormType.value;
@@ -38,7 +56,7 @@
     const roomNumberValue = adFormRoomNumber.value;
     const capacityValue = adFormCapacity.value;
 
-    const textValidityCapacity = (window.data.CAPACITY_VALIDITY[roomNumberValue].values.includes(capacityValue)) ? `` : window.data.CAPACITY_VALIDITY[roomNumberValue].textError;
+    const textValidityCapacity = (CAPACITY_VALIDITY[roomNumberValue].values.includes(capacityValue)) ? `` : CAPACITY_VALIDITY[roomNumberValue].textError;
 
     adFormCapacity.setCustomValidity(textValidityCapacity);
     adFormCapacity.reportValidity();
@@ -54,17 +72,17 @@
     setFormInactiveMode();
   }
 
-  function uploadAdForm() {
-    const SUCCESS = {
-      onSuccess: window.modals.showDialogMessage,
-      callback: resetAdForm
-    };
-    const ERROR = {
-      onError: window.modals.showDialogMessage,
-      callback: uploadAdForm
-    };
+  function informSuccessUpload(message) {
+    window.modals.showDialogMessage(`success`, message);
+    resetAdForm();
+  }
 
-    window.network.upload(new FormData(adForm), SUCCESS, ERROR);
+  function unloadAdForm(message) {
+    window.modals.showDialogMessage(`error`, message, uploadAdForm);
+  }
+
+  function uploadAdForm() {
+    window.network.upload(new FormData(adForm), informSuccessUpload, unloadAdForm);
   }
 
   function onAdFormSubmitClick(evt) {
@@ -85,12 +103,22 @@
     }
   }
 
+  function renderHeaderUploadPreview(src) {
+    adFormHeaderUploadPreview.src = src;
+    adFormHeaderUploadPreview.width = 40;
+    adFormHeaderUploadPreview.height = 40;
+  }
+
+  function renderUploadPreview(src) {
+    adFormUploadPreview.innerHTML = `<img src="${src}" alt="Фотография жилья" style="width: 100%; height: 100%; object-fit: contain">`;
+  }
+
   function onHeaderUploadChange() {
-    window.utils.renderPhotoPreview(adFormHeaderUploadInput, adFormHeaderUploadPreview);
+    window.utils.getPhotoSrc(adFormHeaderUploadInput, renderHeaderUploadPreview);
   }
 
   function onUploadChange() {
-    // TODO: загрузка фотки жилья
+    window.utils.getPhotoSrc(adFormUploadInput, renderUploadPreview);
   }
 
   function setAdFormAddress(coordinats) {

@@ -3,11 +3,9 @@
 (function () {
 
   const map = document.querySelector(`.map`);
-
   const mapPins = map.querySelector(`.map__pins`);
   const mapPinMain = mapPins.querySelector(`.map__pin--main`);
   const mapFilters = map.querySelector(`.map__filters`);
-
   const mapFiltersHousings = mapFilters.querySelectorAll(`[id^="housing-"]`);
 
   // Получить координаты элемента
@@ -48,15 +46,14 @@
     mapFilters.addEventListener(`change`, onMapFiltersChange);
   }
 
-
   function changeMap(evt) {
     const mapPin = evt.target.closest(`button[class="map__pin"]`);
 
     if (mapPin) {
       window.card.removeCards();
-      window.card.renderCard(mapPin.dataset.id);
 
       mapPin.classList.add(`map__pin--active`);
+      window.card.renderCard();
 
       const card = map.querySelector(`.popup__close`);
       card.addEventListener(`click`, onCardPopupCloseClick);

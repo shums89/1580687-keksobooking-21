@@ -2,28 +2,11 @@
 
 (function () {
 
-  function showSuccessMessage(message, callback) {
-    showDialogMessage(`success`, message, callback);
-  }
-
-  function showErrorMessage(message, nameOperation) {
-    showDialogMessage(`error`, message, nameOperation);
-  }
-
   function showDialogMessage(nameElement, message, nameOperation) {
-    let isRunCallback = false;
-
     const template = document.querySelector(`#${nameElement}`);
-    const element = template.content.querySelector(`.${nameElement}`).cloneNode(true);
-    const elementButton = element.querySelector(`.${nameElement}__button`);
-
-    element.querySelector(`.${nameElement}__message`).textContent = message || `Неизвестная ошибка`;
-    element.classList.add(`user-message-active`);
-
-    document.body.prepend(element);
 
     function closeDialogActive() {
-      if (isRunCallback) {
+      if (nameOperation) {
         nameOperation();
       }
 
@@ -37,9 +20,6 @@
     }
 
     function onDocumentClick() {
-      if (nameElement === `success`) {
-        isRunCallback = true;
-      }
       closeDialogActive();
     }
 
@@ -50,9 +30,16 @@
     }
 
     function onElementButtonClick() {
-      isRunCallback = true;
       closeDialogActive();
     }
+
+    const element = template.content.querySelector(`.${nameElement}`).cloneNode(true);
+    const elementButton = element.querySelector(`.${nameElement}__button`);
+
+    element.querySelector(`.${nameElement}__message`).textContent = message || nameElement;
+    element.classList.add(`user-message-active`);
+
+    document.body.prepend(element);
 
     if (elementButton) {
       elementButton.addEventListener(`click`, onElementButtonClick);
@@ -62,8 +49,6 @@
   }
 
   window.modals = {
-    showSuccessMessage,
-    showErrorMessage,
     showDialogMessage
   };
 

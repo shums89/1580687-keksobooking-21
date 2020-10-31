@@ -4,7 +4,6 @@
 
   const map = document.querySelector(`.map`);
   const mapPins = map.querySelector(`.map__pins`);
-
   const cardTemplate = document.querySelector(`#card`).content.querySelector(`.map__card`);
   const popupFeatureTemplate = cardTemplate.querySelector(`.popup__features`).querySelector(`.popup__feature`);
   const popupPhotoTemplate = cardTemplate.querySelector(`.popup__photos`).querySelector(`.popup__photo`);
@@ -88,8 +87,10 @@
   }
 
   // Добавить карточку объявления
-  function renderCard(index) {
-    const cardElement = createCardElement(window.data.loadedAds[index]);
+  function renderCard() {
+    const id = document.querySelector(`.map__pin--active`).dataset.id;
+
+    const cardElement = createCardElement(window.data.loadedAds[id]);
 
     mapPins.after(cardElement);
   }
