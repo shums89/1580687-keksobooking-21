@@ -2,29 +2,20 @@
 
 (function () {
 
-  let ads = [];
-
-  const mapOverlay = document.querySelector(`.map__overlay`);
-  const mapPinMain = document.querySelector(`.map__pin--main`);
-
   const ADS_DATA = {
-    NUMBER_OF_ADS: 8, // количество обьявлений
+    NUMBER_OF_ADS: 5,
     TAG_SIZE: {
-      WIDTH: 50,
-      HEIGHT: 70
-    }, // размеры метки map_pin
+      width: 50,
+      height: 70
+    },
     LOCATION_X: {
-      MIN: 0 - mapPinMain.offsetWidth / 2,
-      MAX: mapOverlay.offsetWidth - mapPinMain.offsetWidth / 2
-    }, // координата X метки на карте
+      min: 0,
+      max: 0
+    },
     LOCATION_Y: {
-      MIN: 130,
-      MAX: 630
-    }, // координата Y метки на карте
-    URLS: {
-      'GET': `https://21.javascript.pages.academy/keksobooking/data`,
-      'POST': `https://21.javascript.pages.academy/keksobooking`
-    }
+      min: 130,
+      max: 630
+    },
   };
 
   const TYPE_HOUSING = {
@@ -46,44 +37,36 @@
     }
   };
 
-  const CAPACITY_VALIDITY = {
-    '1': {
-      values: [`1`],
-      textError: `1 комната — «для 1 гостя»`
-    },
-    '2': {
-      values: [`1`, `2`],
-      textError: `для 2 гостей» или «для 1 гостя»`
-    },
-    '3': {
-      values: [`1`, `2`, `3`],
-      textError: `«для 3 гостей», «для 2 гостей» или «для 1 гостя»`
-    },
-    '100': {
-      values: [`0`],
-      textError: `«не для гостей»`
-    }
-  };
+  let loadedAds = [];
 
-  // Получение массива объявлений
-  function filteringAds(loadedAds) {
-    window.data.ads = [];
+  function saveLoadedAds(data) {
+    window.data.loadedAds = [];
 
-    // ! Добавить фильтрацию объявлений в зависимости от map__filters-container
-    for (let i = 0; i < ADS_DATA.NUMBER_OF_ADS; i++) {
-      window.data.ads.push(loadedAds[i]);
-    }
+    data.forEach((element) => {
+      if (element.offer) {
+        element.restrictions = [];
+        window.data.loadedAds.push(element);
+      }
+    });
 
-    // отрисовываем метки именно здесь, потому что не знаем когда именно получим данные с сервера
-    window.pin.addPins(document.querySelector(`.map`));
+    window.map.setMapActiveMode();
+    window.form.setFormActiveMode();
+  }
+
+  function unloadAds(message) {
+    window.modals.showDialogMessage(`error`, message, loadAds);
+  }
+
+  function loadAds() {
+    window.network.load(window.data.saveLoadedAds, unloadAds);
   }
 
   window.data = {
     ADS_DATA,
     TYPE_HOUSING,
-    CAPACITY_VALIDITY,
-    ads,
-    filteringAds
+    loadedAds,
+    saveLoadedAds,
+    loadAds
   };
 
 })();

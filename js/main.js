@@ -5,6 +5,13 @@
   const map = document.querySelector(`.map`);
   const mapPinMain = map.querySelector(`.map__pin--main`);
 
+  function updateLocationX() {
+    const mapOverlay = document.querySelector(`.map__overlay`);
+
+    window.data.ADS_DATA.LOCATION_X.min = 0 - mapPinMain.offsetWidth / 2;
+    window.data.ADS_DATA.LOCATION_X.max = mapOverlay.offsetWidth - mapPinMain.offsetWidth / 2;
+  }
+
   function onMapPinMainMousedown(evt) {
     evt.preventDefault();
 
@@ -26,6 +33,8 @@
         y: moveEvt.clientY
       };
 
+      updateLocationX();
+
       mapPinMain.style.top = `${window.utils.checkInterval(`LOCATION_Y`, mapPinMain.offsetTop - shift.y)}px`;
       mapPinMain.style.left = `${window.utils.checkInterval(`LOCATION_X`, mapPinMain.offsetLeft - shift.x)}px`;
     }
@@ -38,8 +47,7 @@
 
       // Установить активный режим
       if (map.matches(`.map--faded`)) {
-        window.map.setMapActiveMode();
-        window.form.setFormActiveMode();
+        window.data.loadAds();
       }
 
       window.form.setAdFormAddress(window.map.getCoordinats(false));

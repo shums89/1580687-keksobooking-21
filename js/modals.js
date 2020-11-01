@@ -2,67 +2,54 @@
 
 (function () {
 
-  function showSuccessMessage(message) {
-    showDialogMessage(`success`, message);
-  }
-
-  function showErrorMessage(message, callback) {
-    showDialogMessage(`error`, message, callback);
-  }
-
   function showDialogMessage(nameElement, message, nameOperation) {
     const template = document.querySelector(`#${nameElement}`);
-    const element = template.content.querySelector(`.${nameElement}`).cloneNode(true);
-    const elementButton = element.querySelector(`.${nameElement}__button`);
 
-    element.querySelector(`.${nameElement}__message`).textContent = message || `Неизвестная ошибка`;
-    element.classList.add(`user-message-active`);
+    function closeDialogActive() {
+      if (nameOperation) {
+        nameOperation();
+      }
 
-    document.body.prepend(element);
-
-    function closeError() {
       window.utils.removeElements(document.body.querySelectorAll(`.user-message-active`));
 
       if (elementButton) {
         elementButton.removeEventListener(`click`, onElementButtonClick);
       }
-      document.removeEventListener(`click`, onCloseError);
-      document.removeEventListener(`keydown`, onErrorKeydown);
+      document.removeEventListener(`click`, onDocumentClick);
+      document.removeEventListener(`keydown`, onDocumentKeydown);
     }
 
-    function onCloseError() {
-      closeError();
+    function onDocumentClick() {
+      closeDialogActive();
     }
 
-    function onErrorKeydown(evt) {
+    function onDocumentKeydown(evt) {
       if (evt.key === `Escape`) {
-        closeError();
+        closeDialogActive();
       }
     }
 
     function onElementButtonClick() {
-      closeError();
-      switch (nameOperation) {
-        case `loadData`:
-          window.map.updateMap();
-          break;
-        case `uploadData`:
-          // ! Добавить отправку данных
-          break;
-      }
+      closeDialogActive();
     }
+
+    const element = template.content.querySelector(`.${nameElement}`).cloneNode(true);
+    const elementButton = element.querySelector(`.${nameElement}__button`);
+
+    element.querySelector(`.${nameElement}__message`).textContent = message || nameElement;
+    element.classList.add(`user-message-active`);
+
+    document.body.prepend(element);
 
     if (elementButton) {
       elementButton.addEventListener(`click`, onElementButtonClick);
     }
-
-    document.addEventListener(`click`, onCloseError);
-    document.addEventListener(`keydown`, onErrorKeydown);
+    document.addEventListener(`click`, onDocumentClick);
+    document.addEventListener(`keydown`, onDocumentKeydown);
   }
 
   window.modals = {
-    showSuccessMessage,
-    showErrorMessage
+    showDialogMessage
   };
 
 })();

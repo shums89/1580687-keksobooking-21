@@ -2,8 +2,9 @@
 
 (function () {
 
+  const map = document.querySelector(`.map`);
+  const mapPins = map.querySelector(`.map__pins`);
   const cardTemplate = document.querySelector(`#card`).content.querySelector(`.map__card`);
-
   const popupFeatureTemplate = cardTemplate.querySelector(`.popup__features`).querySelector(`.popup__feature`);
   const popupPhotoTemplate = cardTemplate.querySelector(`.popup__photos`).querySelector(`.popup__photo`);
 
@@ -47,8 +48,6 @@
     const popupFeatures = cardElement.querySelector(`.popup__features`);
     const popupPhotos = cardElement.querySelector(`.popup__photos`);
 
-    cardElement.querySelector(`.popup__close`).dataset.name = `map_card`;
-
     cardElement.querySelector(`.popup__avatar`).src = ad.author.avatar;
     cardElement.querySelector(`.popup__title`).textContent = ad.offer.title;
     cardElement.querySelector(`.popup__text--address`).textContent = ad.offer.address;
@@ -88,22 +87,25 @@
   }
 
   // Добавить карточку объявления
-  function addCard(index, location) {
-    const cardElement = createCardElement(window.data.ads[index]);
+  function renderCard() {
+    const id = document.querySelector(`.map__pin--active`).dataset.id;
 
-    location.after(cardElement);
+    const cardElement = createCardElement(window.data.loadedAds[id]);
+
+    mapPins.after(cardElement);
   }
 
   // Удалить карточку объявления
-  function removeCard(location) {
-    const collectionCard = location.querySelectorAll(`article[class="map__card popup"]`);
+  function removeCards() {
+    const collectionCard = map.querySelectorAll(`article[class="map__card popup"]`);
 
     window.utils.removeElements(collectionCard);
+    window.pin.removeActivePins();
   }
 
   window.card = {
-    addCard,
-    removeCard
+    renderCard,
+    removeCards
   };
 
 })();

@@ -2,6 +2,7 @@
 
 (function () {
 
+  const mapPins = document.querySelector(`.map`).querySelector(`.map__pins`);
   const pinTemplate = document.querySelector(`#pin`).content.querySelector(`.map__pin`);
 
   // Создание DOM-элемента для Фрагмента похожего объявления
@@ -9,7 +10,7 @@
     const pinElement = pinTemplate.cloneNode(true);
     const pinElementImg = pinElement.querySelector(`img`);
 
-    pinElement.style = `left: ${ad.location.x - window.data.ADS_DATA.TAG_SIZE.WIDTH / 2}px; top: ${ad.location.y - window.data.ADS_DATA.TAG_SIZE.HEIGHT}px;`;
+    pinElement.style = `left: ${ad.location.x - window.data.ADS_DATA.TAG_SIZE.width / 2}px; top: ${ad.location.y - window.data.ADS_DATA.TAG_SIZE.height}px;`;
     pinElementImg.src = ad.author.avatar;
     pinElementImg.alt = ad.offer.title;
 
@@ -17,13 +18,15 @@
   }
 
   // Создание Фрагмента похожего объявления
-  function createPinsFragment(ads) {
+  function createPinsFragment(arr) {
     const pinsFragment = document.createDocumentFragment();
 
-    ads.forEach((ad, i) => {
-      const pinElement = createPinElement(ad);
-      pinElement.dataset.id = i;
+    arr.slice(0, window.data.ADS_DATA.NUMBER_OF_ADS).forEach((index) => {
+      const pinElement = createPinElement(window.data.loadedAds[index]);
+
+      pinElement.dataset.id = index;
       pinElement.dataset.name = `map_pin`;
+
       pinsFragment.appendChild(pinElement);
     });
 
@@ -31,22 +34,34 @@
   }
 
   // Добавление объявлений на карту
-  function addPins(location) {
-    const pinsFragment = createPinsFragment(window.data.ads);
+  function renderPins(arr) {
+    removePins();
+    window.card.removeCards();
 
-    location.appendChild(pinsFragment);
+    const pinsFragment = createPinsFragment(arr);
+
+    mapPins.appendChild(pinsFragment);
   }
 
   // Удалить метки
-  function removePins(location) {
-    const collectionPin = location.querySelectorAll(`button[class="map__pin"]`);
+  function removePins() {
+    const collectionPin = mapPins.querySelectorAll(`button[data-name="map_pin"]`);
 
     window.utils.removeElements(collectionPin);
   }
 
+  function removeActivePins() {
+    const collection = document.querySelectorAll(`.map__pin--active`);
+
+    collection.forEach((element) => {
+      element.classList.remove(`map__pin--active`);
+    });
+  }
+
   window.pin = {
-    addPins,
-    removePins
+    renderPins,
+    removePins,
+    removeActivePins
   };
 
 })();

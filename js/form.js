@@ -2,6 +2,25 @@
 
 (function () {
 
+  const CAPACITY_VALIDITY = {
+    '1': {
+      values: [`1`],
+      textError: `1 комната — «для 1 гостя»`
+    },
+    '2': {
+      values: [`1`, `2`],
+      textError: `для 2 гостей» или «для 1 гостя»`
+    },
+    '3': {
+      values: [`1`, `2`, `3`],
+      textError: `«для 3 гостей», «для 2 гостей» или «для 1 гостя»`
+    },
+    '100': {
+      values: [`0`],
+      textError: `«не для гостей»`
+    }
+  };
+
   const adForm = document.querySelector(`.ad-form`);
   const adFormSubmit = adForm.querySelector(`.ad-form__submit`);
   const adFormReset = adForm.querySelector(`.ad-form__reset`);
@@ -12,6 +31,10 @@
   const adFormTimeout = adForm.querySelector(`#timeout`);
   const adFormRoomNumber = adForm.querySelector(`#room_number`);
   const adFormCapacity = adForm.querySelector(`#capacity`);
+  const adFormHeaderUploadInput = adForm.querySelector(`.ad-form-header__upload input[type=file]`);
+  const adFormHeaderUploadPreview = adForm.querySelector(`.ad-form-header__upload .ad-form-header__preview img`);
+  const adFormUploadInput = adForm.querySelector(`.ad-form__upload input[type=file]`);
+  const adFormUploadPreview = adForm.querySelector(`.ad-form__photo`);
 
   function checkType() {
     const typeValue = adFormType.value;
@@ -21,25 +44,11 @@
     adFormPrice.placeholder = newValue;
   }
 
-  function checkTime(element) {
-    let textValidityTimein = ``;
-    let textValidityTimeout = ``;
-
+  function checkTime() {
     if (adFormTimeout.value !== adFormTimein.value) {
-      switch (element) {
-        case `timein`:
-          textValidityTimeout = `Время выезда должно быть до ${adFormTimein.value}`;
-          break;
-        case `timeout`:
-          textValidityTimein = `Время заезда должно быть после ${adFormTimeout.value}`;
-          break;
-      }
+      adFormTimeout.setCustomValidity(`Время выезда должно быть до ${adFormTimein.value}`);
     }
 
-    adFormTimein.setCustomValidity(textValidityTimein);
-    adFormTimeout.setCustomValidity(textValidityTimeout);
-
-    adFormTimein.reportValidity();
     adFormTimeout.reportValidity();
   }
 
@@ -47,31 +56,43 @@
     const roomNumberValue = adFormRoomNumber.value;
     const capacityValue = adFormCapacity.value;
 
-    const textValidityCapacity = (window.data.CAPACITY_VALIDITY[roomNumberValue].values.includes(capacityValue)) ? `` : window.data.CAPACITY_VALIDITY[roomNumberValue].textError;
+    const textValidityCapacity = (CAPACITY_VALIDITY[roomNumberValue].values.includes(capacityValue)) ? `` : CAPACITY_VALIDITY[roomNumberValue].textError;
 
     adFormCapacity.setCustomValidity(textValidityCapacity);
     adFormCapacity.reportValidity();
   }
 
   function resetAdForm() {
-    adForm.reset();
     adFormPrice.min = 0;
     adFormPrice.placeholder = 0;
+    window.data.loadedAds = [];
 
+    adForm.reset();
     window.map.setMapInactiveMode();
     setFormInactiveMode();
   }
 
-  function showSuccessSend(message) {
+  function informSuccessUpload(message) {
+    window.modals.showDialogMessage(`success`, message);
     resetAdForm();
-    window.modals.showSuccessMessage(message);
+  }
+
+  function unloadAdForm(message) {
+    window.modals.showDialogMessage(`error`, message, uploadAdForm);
+  }
+
+  function uploadAdForm() {
+    window.network.upload(new FormData(adForm), informSuccessUpload, unloadAdForm);
   }
 
   function onAdFormSubmitClick(evt) {
+    checkType();
+    checkTime();
+    checkRoomNumber();
+
     if (adForm.checkValidity()) {
       evt.preventDefault();
-
-      window.load.load(`POST`, new FormData(adForm), showSuccessSend, window.modals.showErrorMessage);
+      uploadAdForm();
     }
   }
 
@@ -82,24 +103,22 @@
     }
   }
 
-  function onAdFormChange(evt) {
-    const id = evt.target.id;
+  function renderHeaderUploadPreview(src) {
+    adFormHeaderUploadPreview.src = src;
+    adFormHeaderUploadPreview.width = 40;
+    adFormHeaderUploadPreview.height = 40;
+  }
 
-    switch (id) {
-      case `type`:
-        checkType();
-        break;
+  function renderUploadPreview(src) {
+    adFormUploadPreview.innerHTML = `<img src="${src}" alt="Фотография жилья" style="width: 100%; height: 100%; object-fit: contain">`;
+  }
 
-      case `room_number`:
-      case `capacity`:
-        checkRoomNumber();
-        break;
+  function onHeaderUploadChange() {
+    window.utils.getPhotoSrc(adFormHeaderUploadInput, renderHeaderUploadPreview);
+  }
 
-      case `timein`:
-      case `timeout`:
-        checkTime(id);
-        break;
-    }
+  function onUploadChange() {
+    window.utils.getPhotoSrc(adFormUploadInput, renderUploadPreview);
   }
 
   function setAdFormAddress(coordinats) {
@@ -108,37 +127,29 @@
 
   function setFormInactiveMode() {
     adForm.classList.add(`ad-form--disabled`);
-
-    // Заблокировать ввод объявления
     window.utils.setDisabled(adFormFieldsets);
 
-    removeAdFormEventListeners();
+    adFormSubmit.removeEventListener(`click`, onAdFormSubmitClick);
+    adFormReset.removeEventListener(`click`, onAdFormResetClick);
+    adFormHeaderUploadInput.removeEventListener(`change`, onHeaderUploadChange);
+    adFormUploadInput.removeEventListener(`change`, onUploadChange);
   }
 
   function setFormActiveMode() {
     adForm.classList.remove(`ad-form--disabled`);
     window.utils.setDisabled(adFormFieldsets, false);
-    addAdFormEventListeners();
-  }
 
-  function addAdFormEventListeners() {
     adFormSubmit.addEventListener(`click`, onAdFormSubmitClick);
     adFormReset.addEventListener(`click`, onAdFormResetClick);
-    adForm.addEventListener(`change`, onAdFormChange);
-  }
-
-  function removeAdFormEventListeners() {
-    adFormSubmit.removeEventListener(`click`, onAdFormSubmitClick);
-    adFormReset.removeEventListener(`click`, onAdFormResetClick);
-    adForm.removeEventListener(`change`, onAdFormChange);
+    adFormHeaderUploadInput.addEventListener(`change`, onHeaderUploadChange);
+    adFormUploadInput.addEventListener(`change`, onUploadChange);
   }
 
   window.form = {
     setAdFormAddress,
-    addAdFormEventListeners,
-    removeAdFormEventListeners,
     setFormInactiveMode,
-    setFormActiveMode
+    setFormActiveMode,
+    uploadAdForm
   };
 
 })();

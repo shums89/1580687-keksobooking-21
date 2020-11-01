@@ -3,26 +3,10 @@
 (function () {
 
   const map = document.querySelector(`.map`);
-
   const mapPins = map.querySelector(`.map__pins`);
   const mapPinMain = mapPins.querySelector(`.map__pin--main`);
   const mapFilters = map.querySelector(`.map__filters`);
-
   const mapFiltersHousings = mapFilters.querySelectorAll(`[id^="housing-"]`);
-
-  // Сбросить фильтры на карте
-  function resetFilters(collection) {
-    collection.forEach((element) => {
-      switch (element.tagName) {
-        case `SELECT`:
-          element.value = `any`;
-          break;
-        case `INPUT`:
-          element.checked = false;
-          break;
-      }
-    });
-  }
 
   // Получить координаты элемента
   function getCoordinats(isCenter = true) {
@@ -36,73 +20,79 @@
   }
 
   function setMapInactiveMode() {
-    const mapFiltersFeatures = mapFilters.querySelector(`#housing-features`).querySelectorAll(`input[name="features"]`);
-
     map.classList.add(`map--faded`);
     window.utils.setDisabled(mapFiltersHousings);
 
-    // Сбросить фильтры
-    resetFilters(mapFiltersHousings);
-    resetFilters(mapFiltersFeatures);
-
-    // Очистить карту
-    window.pin.removePins(map);
-    window.card.removeCard(map);
+    mapFilters.reset();
+    window.pin.removePins();
+    window.card.removeCards();
 
     mapPinMain.style = `left: 570px; top: 375px;`;
     window.form.setAdFormAddress(getCoordinats(true));
 
-    map.removeEventListener(`click`, onMapClick);
-    map.removeEventListener(`keydown`, onMapKeydown);
+    mapPins.removeEventListener(`click`, onMapPinsClick);
+    mapPins.removeEventListener(`keydown`, onMapPinsKeydown);
+    mapFilters.removeEventListener(`change`, onMapFiltersChange);
   }
 
   function setMapActiveMode() {
     map.classList.remove(`map--faded`);
     window.utils.setDisabled(mapFiltersHousings, false);
 
-    map.addEventListener(`click`, onMapClick);
-    map.addEventListener(`keydown`, onMapKeydown);
+    updateMap();
+
+    mapPins.addEventListener(`click`, onMapPinsClick);
+    mapPins.addEventListener(`keydown`, onMapPinsKeydown);
+    mapFilters.addEventListener(`change`, onMapFiltersChange);
   }
 
   function changeMap(evt) {
-    const target = evt.target;
-    const name = target.dataset.name || target.parentElement.dataset.name;
+    const mapPin = evt.target.closest(`button[class="map__pin"]`);
 
-    switch (name) {
-      case `map_pin`:
-        const id = target.dataset.id || target.parentElement.dataset.id;
+    if (mapPin) {
+      window.card.removeCards();
 
-        window.card.removeCard(map);
-        window.card.addCard(id, mapPins);
-        break;
-      case `map_card`:
-        window.card.removeCard(map);
+      mapPin.classList.add(`map__pin--active`);
+      window.card.renderCard();
+
+      const card = map.querySelector(`.popup__close`);
+      card.addEventListener(`click`, onCardPopupCloseClick);
     }
   }
 
   function updateMap() {
-    window.pin.removePins(map);
-    window.card.removeCard(map);
-    window.load.load(`GET`, null, window.data.filteringAds, window.modals.showErrorMessage);
+    window.pin.removePins();
+    window.card.removeCards();
+    window.utils.debounce(window.pin.renderPins(window.filter.filtering()));
   }
 
-  function onMapClick(evt) {
+  function onMapPinsClick(evt) {
     if (evt.button === 0) {
-      changeMap(evt);
+      window.utils.debounce(changeMap(evt));
     }
   }
 
-  function onMapKeydown(evt) {
+  function onMapPinsKeydown(evt) {
     switch (evt.key) {
       case `Enter`:
-        changeMap(evt);
+        window.utils.debounce(changeMap(evt));
         break;
 
       case `Escape`:
         evt.preventDefault();
-        window.card.removeCard(map);
+        window.card.removeCards();
         break;
     }
+  }
+
+  function onMapFiltersChange() {
+    window.utils.debounce(window.pin.renderPins(window.filter.filtering()));
+  }
+
+  function onCardPopupCloseClick(evt) {
+    evt.target.removeEventListener(`click`, onCardPopupCloseClick);
+
+    window.card.removeCards();
   }
 
   window.map = {

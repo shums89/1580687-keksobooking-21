@@ -2,6 +2,9 @@
 
 (function () {
 
+  const DEBOUNCE_INTERVAL = 500;
+  const FILE_TYPES = [`gif`, `jpg`, `jpeg`, `png`];
+
   // Генерация случайного числа
   function getRandomInteger(min, max) {
     return Math.floor(min + Math.random() * (max + 1 - min));
@@ -36,22 +39,53 @@
 
   // Удалить элементы
   function removeElements(collection) {
-    if (collection.length) {
-      collection.forEach((element) => {
-        element.remove();
-      });
-    }
+    collection.forEach((element) => {
+      element.remove();
+    });
   }
 
   // Проверка интервала
   function checkInterval(parameter, value) {
-    if (value < window.data.ADS_DATA[parameter].MIN) {
-      value = window.data.ADS_DATA[parameter].MIN;
-    } else if (value > window.data.ADS_DATA[parameter].MAX) {
-      value = window.data.ADS_DATA[parameter].MAX;
+    if (value < window.data.ADS_DATA[parameter].min) {
+      value = window.data.ADS_DATA[parameter].min;
+    } else if (value > window.data.ADS_DATA[parameter].max) {
+      value = window.data.ADS_DATA[parameter].max;
     }
 
     return value;
+  }
+
+  function debounce(callback) {
+    let lastTimeout = null;
+
+    return function (...args) {
+      if (lastTimeout) {
+        window.clearTimeout(lastTimeout);
+      }
+
+      lastTimeout = window.setTimeout(function () {
+        callback(...args);
+      }, DEBOUNCE_INTERVAL);
+    };
+  }
+
+  function getPhotoSrc(fileChooser, callback) {
+    const reader = new FileReader();
+    const file = fileChooser.files[0];
+    const fileName = file.name.toLowerCase();
+
+    const matches = FILE_TYPES.some(function (it) {
+      return fileName.endsWith(it);
+    });
+
+    function onReaderLoad() {
+      callback(reader.result);
+    }
+
+    if (matches) {
+      reader.readAsDataURL(file);
+      reader.addEventListener(`load`, onReaderLoad);
+    }
   }
 
   window.utils = {
@@ -61,7 +95,9 @@
     getEnding,
     setDisabled,
     removeElements,
-    checkInterval
+    checkInterval,
+    debounce,
+    getPhotoSrc
   };
 
 })();
