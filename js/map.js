@@ -23,6 +23,8 @@
     map.classList.add(`map--faded`);
     window.utils.setDisabled(mapFiltersHousings);
 
+    window.data.loadedAds = [];
+
     mapFilters.reset();
     window.pin.removePins();
     window.card.removeCards();

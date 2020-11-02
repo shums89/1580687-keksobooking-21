@@ -45,10 +45,9 @@
   }
 
   function checkTime() {
-    if (adFormTimeout.value !== adFormTimein.value) {
-      adFormTimeout.setCustomValidity(`Время выезда должно быть до ${adFormTimein.value}`);
-    }
+    const textValidityCapacity = (adFormTimeout.value === adFormTimein.value) ? `` : `Время выезда должно быть до ${adFormTimein.value}`;
 
+    adFormTimeout.setCustomValidity(textValidityCapacity);
     adFormTimeout.reportValidity();
   }
 
@@ -65,7 +64,8 @@
   function resetAdForm() {
     adFormPrice.min = 0;
     adFormPrice.placeholder = 0;
-    window.data.loadedAds = [];
+    adFormHeaderUploadPreview.src = `img/muffin-grey.svg`;
+    adFormUploadPreview.innerHTML = ``;
 
     adForm.reset();
     window.map.setMapInactiveMode();

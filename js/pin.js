@@ -45,9 +45,9 @@
 
   // Удалить метки
   function removePins() {
-    const collectionPin = mapPins.querySelectorAll(`button[data-name="map_pin"]`);
+    const collection = mapPins.querySelectorAll(`button[data-name="map_pin"]`);
 
-    window.utils.removeElements(collectionPin);
+    window.utils.removeElements(collection);
   }
 
   function removeActivePins() {
