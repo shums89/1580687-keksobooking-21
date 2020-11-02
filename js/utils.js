@@ -69,8 +69,7 @@
     };
   }
 
-  function getPhotoSrc(fileChooser, callback) {
-    const reader = new FileReader();
+  function setPhotoSrc(fileChooser, element) {
     const file = fileChooser.files[0];
     const fileName = file.name.toLowerCase();
 
@@ -78,13 +77,13 @@
       return fileName.endsWith(it);
     });
 
-    function onReaderLoad() {
-      callback(reader.result);
-    }
-
     if (matches) {
+      const reader = new FileReader();
+
       reader.readAsDataURL(file);
-      reader.addEventListener(`load`, onReaderLoad);
+      reader.addEventListener(`load`, function () {
+        element.src = reader.result;
+      });
     }
   }
 
@@ -97,7 +96,7 @@
     removeElements,
     checkInterval,
     debounce,
-    getPhotoSrc
+    setPhotoSrc
   };
 
 })();

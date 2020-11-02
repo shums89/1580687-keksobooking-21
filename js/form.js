@@ -103,22 +103,20 @@
     }
   }
 
-  function renderHeaderUploadPreview(src) {
-    adFormHeaderUploadPreview.src = src;
-    adFormHeaderUploadPreview.width = 40;
-    adFormHeaderUploadPreview.height = 40;
-  }
-
-  function renderUploadPreview(src) {
-    adFormUploadPreview.innerHTML = `<img src="${src}" alt="Фотография жилья" style="width: 100%; height: 100%; object-fit: contain">`;
-  }
-
   function onHeaderUploadChange() {
-    window.utils.getPhotoSrc(adFormHeaderUploadInput, renderHeaderUploadPreview);
+    window.utils.setPhotoSrc(adFormHeaderUploadInput, adFormHeaderUploadPreview);
   }
 
   function onUploadChange() {
-    window.utils.getPhotoSrc(adFormUploadInput, renderUploadPreview);
+    const photoElement = document.createElement(`img`);
+    photoElement.src = `#`;
+    photoElement.alt = `Фотография жилья`;
+    photoElement.style = `width: 100%; height: 100%; object-fit: contain`;
+
+    window.utils.setPhotoSrc(adFormUploadInput, photoElement);
+
+    adFormUploadPreview.innerHTML = ``;
+    adFormUploadPreview.appendChild(photoElement);
   }
 
   function setAdFormAddress(coordinats) {
