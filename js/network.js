@@ -1,6 +1,7 @@
 'use strict';
 
 const TIMEOUT_IN_MS = 10000;
+const responseType = `json`;
 
 const URLS = {
   get: `https://21.javascript.pages.academy/keksobooking/data`,
@@ -8,48 +9,23 @@ const URLS = {
 };
 
 const SERVER_CODE = {
-  200: {
-    type: `success`,
-    message: `Запрос успешно выполнен`
-  },
-  400: {
-    type: `error`,
-    message: `Неверный запрос`
-  },
-  401: {
-    type: `error`,
-    message: `Пользователь не авторизован`
-  },
-  404: {
-    type: `error`,
-    message: `Ничего не найдено`
-  },
-  500: {
-    type: `error`,
-    message: `Ошибка сервера`
-  }
+  400: `Неверный запрос`,
+  401: `Пользователь не авторизован`,
+  404: `Ничего не найдено`,
+  500: `Ошибка сервера`
 };
 
 function load(onSuccess, onError) {
   const xhr = new XMLHttpRequest();
-  xhr.responseType = `json`;
+  xhr.responseType = responseType;
   xhr.timeout = TIMEOUT_IN_MS;
 
-  xhr.addEventListener(`load`, function () {
-    switch (SERVER_CODE[xhr.status].type) {
-      case `success`:
-        onSuccess(xhr.response);
-        break;
-      case `error`:
-        onError(SERVER_CODE[xhr.status].message);
-        break;
-      default:
-        onError(`Статус ответа: ${xhr.status} ${xhr.statusText}`);
-    }
+  xhr.addEventListener(`load`, () => {
+    onSuccess(xhr.response);
   });
 
-  xhr.addEventListener(`error`, function () {
-    onError(`Произошла ошибка соединения`);
+  xhr.addEventListener(`error`, () => {
+    onError(SERVER_CODE[xhr.status] || `Произошла ошибка соединения`);
   });
 
   xhr.addEventListener(`timeout`, function () {
@@ -67,20 +43,11 @@ function upload(data, onSuccess, onError) {
   xhr.timeout = TIMEOUT_IN_MS;
 
   xhr.addEventListener(`load`, function () {
-    switch (SERVER_CODE[xhr.status].type) {
-      case `success`:
-        onSuccess(`Ваша заявка успешно отправлена`);
-        break;
-      case `error`:
-        onError(SERVER_CODE[xhr.status].message);
-        break;
-      default:
-        onError(`Статус ответа: ${xhr.status} ${xhr.statusText}`);
-    }
+    onSuccess(`Ваша заявка успешно отправлена`);
   });
 
   xhr.addEventListener(`error`, function () {
-    onError(`Произошла ошибка соединения`);
+    onError(SERVER_CODE[xhr.status] || `Произошла ошибка соединения`);
   });
 
   xhr.addEventListener(`timeout`, function () {

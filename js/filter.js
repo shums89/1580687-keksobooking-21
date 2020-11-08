@@ -22,23 +22,19 @@ const HOUSING_PRICE = {
   }
 };
 
-function getDistance(index) {
+// Расчет кратчашего расстояния до метки (гипотенузы)
+function getDistance(data) {
   const pinMainCoords = window.map.getCoordinats(false).split(`,`);
 
-  return Math.sqrt(Math.abs(Math.pow(pinMainCoords[0] - window.data.loadedAds[index].location.x, 2) + Math.pow(pinMainCoords[1] - window.data.loadedAds[index].location.y, 2)));
+  return Math.sqrt(Math.abs(Math.pow(pinMainCoords[0] - data.location.x, 2) + Math.pow(pinMainCoords[1] - data.location.y, 2))
+  );
 }
 
+// Поиск ближайщих меток к главной метке
 function sortByDistance(data) {
-  return data.sort(function (left, right) {
-    return getDistance(left) - getDistance(right);
+  return data.sort(function (a, b) {
+    return getDistance(a) - getDistance(b);
   });
-}
-
-function addUniqueElement(element, arr) {
-  const newSet = new Set(arr);
-  newSet.add(element);
-
-  return [...newSet];
 }
 
 function filterByType(element) {
@@ -69,18 +65,18 @@ function filterByFeatures(element) {
   return [...filterFeatures].some((filter) => filter.checked && !element.offer.features.includes(filter.value));
 }
 
-function filtering() {
-  let filteredAds = [];
+function getFilterData(data) {
+  const result = data.filter((element) =>
+    filterByType(element) &&
+    filterByPrice(element) &&
+    filterByRooms(element) &&
+    filterByGuests(element) &&
+    !filterByFeatures(element)
+  );
 
-  window.data.loadedAds.forEach((element, i) => {
-    if (filterByType(element) && filterByPrice(element) && filterByRooms(element) && filterByGuests(element) && !filterByFeatures(element)) {
-      filteredAds = addUniqueElement(i, filteredAds);
-    }
-  });
-
-  return sortByDistance(filteredAds);
+  return sortByDistance(result);
 }
 
 window.filter = {
-  filtering
+  getFilterData
 };

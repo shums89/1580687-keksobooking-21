@@ -3,28 +3,12 @@
 const DEBOUNCE_INTERVAL = 500;
 const FILE_TYPES = [`gif`, `jpg`, `jpeg`, `png`];
 
-// Генерация случайного числа
-function getRandomInteger(min, max) {
-  return Math.floor(min + Math.random() * (max + 1 - min));
-}
-
-// Получение случайного элемента массива
-function getRandomElement(arr) {
-  return arr[getRandomInteger(0, arr.length - 1)];
-}
-
-// Получение нового массива
-function getCorrectOrderList(arr) {
-  return arr.filter(() => getRandomInteger(0, 1));
-}
-
 // Склонение существительных
-function getEnding(number, words) {
+function getWordEnding(number, words) {
   const cases = [2, 0, 1, 1, 1, 2];
   return words[(number % 100 > 4 && number % 100 < 20) ? 2 : cases[(number % 10 < 5) ? number % 10 : 5]];
 }
 
-// Настройка доступа
 function setDisabled(collection, disabled = true) {
   collection.forEach((element) => {
     if (disabled) {
@@ -35,22 +19,10 @@ function setDisabled(collection, disabled = true) {
   });
 }
 
-// Удалить элементы
 function removeElements(collection) {
   collection.forEach((element) => {
     element.remove();
   });
-}
-
-// Проверка интервала
-function checkInterval(parameter, value) {
-  if (value < window.data.ADS_DATA[parameter].min) {
-    value = window.data.ADS_DATA[parameter].min;
-  } else if (value > window.data.ADS_DATA[parameter].max) {
-    value = window.data.ADS_DATA[parameter].max;
-  }
-
-  return value;
 }
 
 function debounce(callback) {
@@ -67,32 +39,22 @@ function debounce(callback) {
   };
 }
 
-function getPhotoSrc(fileChooser, callback) {
+function getPhotoSrc(fileChooser, onSuccess) {
   const file = fileChooser.files[0];
   const fileName = file.name.toLowerCase();
 
-  const matches = FILE_TYPES.some(function (it) {
-    return fileName.endsWith(it);
-  });
-
-  if (matches) {
+  if (FILE_TYPES.some((it) => fileName.endsWith(it))) {
     const reader = new FileReader();
 
     reader.readAsDataURL(file);
-    reader.addEventListener(`load`, function () {
-      callback(reader.result);
-    });
+    reader.addEventListener(`load`, () => onSuccess(reader.result));
   }
 }
 
 window.utils = {
-  getRandomInteger,
-  getRandomElement,
-  getCorrectOrderList,
-  getEnding,
+  getWordEnding,
   setDisabled,
   removeElements,
-  checkInterval,
   debounce,
   getPhotoSrc
 };

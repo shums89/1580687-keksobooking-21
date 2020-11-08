@@ -8,8 +8,12 @@ const popupPhotoTemplate = cardTemplate.querySelector(`.popup__photos`).querySel
 
 // Вывод количества комнат и гостей
 function getTextRoomsAndGuests(ad) {
-  let str = `${ad.offer.rooms} ${window.utils.getEnding(ad.offer.rooms, [`комната`, `комнаты`, `комнат`])} `;
-  str += (ad.offer.guests) ? `для ${ad.offer.guests} ${window.utils.getEnding(ad.offer.guests, [`гостя`, `гостей`, `гостей`])}` : `без гостей`;
+  let str = `${ad.offer.rooms} ${window.utils.getWordEnding(ad.offer.rooms, [`комната`, `комнаты`, `комнат`])} `;
+
+  str += (ad.offer.guests) ?
+    `для ${ad.offer.guests} ${window.utils.getWordEnding(ad.offer.guests, [`гостя`, `гостей`, `гостей`])}` :
+    `без гостей`;
+
   return str;
 }
 
@@ -43,6 +47,7 @@ function createPopupPhotosFragment(photos) {
 function createCardElement(ad) {
   const cardElement = cardTemplate.cloneNode(true);
 
+  const popupDescription = cardElement.querySelector(`.popup__description`);
   const popupFeatures = cardElement.querySelector(`.popup__features`);
   const popupPhotos = cardElement.querySelector(`.popup__photos`);
 
@@ -56,9 +61,9 @@ function createCardElement(ad) {
 
   // Необязательное поле, делаем проверку на наличие
   if (ad.offer.description) {
-    cardElement.querySelector(`.popup__description`).textContent = ad.offer.description;
+    popupDescription.textContent = ad.offer.description;
   } else {
-    cardElement.classList.add(`hidden`);
+    popupDescription.classList.add(`hidden`);
   }
 
   // Получение доступных удобств в карточке объявления, или скрытие данного блока
@@ -84,24 +89,33 @@ function createCardElement(ad) {
   return cardElement;
 }
 
-// Добавить карточку объявления
-function renderCard() {
-  const id = document.querySelector(`.map__pin--active`).dataset.id;
+function onCardPopupCloseClick(evt) {
+  evt.target.removeEventListener(`click`, onCardPopupCloseClick);
 
+  window.card.removeCard();
+}
+
+// Добавить карточку объявления
+function renderCard(id) {
   const cardElement = createCardElement(window.data.loadedAds[id]);
 
   mapPins.after(cardElement);
+
+  const card = map.querySelector(`.popup__close`);
+  card.addEventListener(`click`, onCardPopupCloseClick);
 }
 
 // Удалить карточку объявления
-function removeCards() {
-  const collectionCard = map.querySelectorAll(`article[class="map__card popup"]`);
+function removeCard() {
+  const card = map.querySelector(`article[class="map__card popup"]`);
 
-  window.utils.removeElements(collectionCard);
-  window.pin.removeActivePins();
+  if (card) {
+    card.remove();
+  }
+  window.pin.removeActivePin();
 }
 
 window.card = {
   renderCard,
-  removeCards
+  removeCard
 };

@@ -1,9 +1,9 @@
 'use strict';
 
-function showDialogMessage(dialog, message, callback) {
-  const template = document.querySelector(`#${dialog}`);
+function showDialogMessage(selector, message = ``, callback) {
+  const template = document.querySelector(`#${selector}`);
 
-  function closeDialogActive() {
+  function closeActiveDialogs() {
     window.utils.removeElements(document.body.querySelectorAll(`.user-message-active`));
 
     document.removeEventListener(`click`, onDocumentClick);
@@ -11,7 +11,7 @@ function showDialogMessage(dialog, message, callback) {
   }
 
   function onDocumentClick(evt) {
-    closeDialogActive();
+    closeActiveDialogs();
 
     if (callback && evt.target.matches(`button`)) {
       callback();
@@ -20,13 +20,13 @@ function showDialogMessage(dialog, message, callback) {
 
   function onDocumentKeydown(evt) {
     if (evt.key === `Escape`) {
-      closeDialogActive();
+      closeActiveDialogs();
     }
   }
 
-  const element = template.content.querySelector(`.${dialog}`).cloneNode(true);
+  const element = template.content.querySelector(`.${selector}`).cloneNode(true);
 
-  element.querySelector(`.${dialog}__message`).textContent = message || dialog;
+  element.querySelector(`.${selector}__message`).textContent = message;
   element.classList.add(`user-message-active`);
 
   document.body.prepend(element);

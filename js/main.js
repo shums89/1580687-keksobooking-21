@@ -1,5 +1,8 @@
 'use strict';
 
+const LOCATION_X = `LOCATION_X`;
+const LOCATION_Y = `LOCATION_Y`;
+
 const map = document.querySelector(`.map`);
 const mapPinMain = map.querySelector(`.map__pin--main`);
 
@@ -37,8 +40,8 @@ function onMapPinMainMousedown(evt) {
 
     updateLocationX();
 
-    mapPinMain.style.top = `${window.utils.checkInterval(`LOCATION_Y`, mapPinMain.offsetTop - shift.y)}px`;
-    mapPinMain.style.left = `${window.utils.checkInterval(`LOCATION_X`, mapPinMain.offsetLeft - shift.x)}px`;
+    mapPinMain.style.top = `${window.data.checkInterval(LOCATION_Y, mapPinMain.offsetTop - shift.y)}px`;
+    mapPinMain.style.left = `${window.data.checkInterval(LOCATION_X, mapPinMain.offsetLeft - shift.x)}px`;
   }
 
   function onMouseUp(upEvt) {
@@ -48,11 +51,11 @@ function onMapPinMainMousedown(evt) {
     document.removeEventListener(`mouseup`, onMouseUp);
 
     if (map.matches(`.map--faded`)) {
-      window.data.loadAds();
+      window.map.setMapActiveMode();
+      window.form.setFormActiveMode();
+    } else {
+      window.map.updateMap();
     }
-
-    window.form.setAdFormAddress(window.map.getCoordinats(false));
-    window.map.updateMap();
   }
 
   document.addEventListener(`mousemove`, onMouseMove);

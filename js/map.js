@@ -27,7 +27,7 @@ function setMapInactiveMode() {
 
   mapFilters.reset();
   window.pin.removePins();
-  window.card.removeCards();
+  window.card.removeCard();
 
   mapPinMain.style = DEFAULT_COORDINATES_PIN_MAIN;
   window.form.setAdFormAddress(getCoordinats(true));
@@ -37,9 +37,15 @@ function setMapInactiveMode() {
   mapFilters.removeEventListener(`change`, onMapFiltersChange);
 }
 
-function setMapActiveMode() {
-  map.classList.remove(`map--faded`);
-  window.utils.setDisabled(mapFiltersHousings, false);
+function saveLoadedAds(data) {
+  window.data.loadedAds = [];
+
+  data.forEach((element, i) => {
+    if (element.offer) {
+      element.index = i;
+      window.data.loadedAds.push(element);
+    }
+  });
 
   updateMap();
 
@@ -48,53 +54,62 @@ function setMapActiveMode() {
   mapFilters.addEventListener(`change`, onMapFiltersChange);
 }
 
-function changeMap(evt) {
-  const mapPin = evt.target.closest(`button[class="map__pin"]`);
+function unloadAds(message) {
+  window.modals.showDialogMessage(`error`, message, loadAds);
+}
+
+function loadAds() {
+  window.network.load(saveLoadedAds, unloadAds);
+}
+
+function setMapActiveMode() {
+  map.classList.remove(`map--faded`);
+  window.utils.setDisabled(mapFiltersHousings, false);
+
+  loadAds();
+}
+
+function onClickMap(evt) {
+  const mapPin = evt.target.closest(`.map__pin:not(.map__pin--main)`);
 
   if (mapPin) {
-    window.card.removeCards();
-
+    window.card.removeCard();
     mapPin.classList.add(`map__pin--active`);
-    window.card.renderCard();
-
-    const card = map.querySelector(`.popup__close`);
-    card.addEventListener(`click`, onCardPopupCloseClick);
+    window.card.renderCard(mapPin.dataset.id);
   }
 }
 
 function updateMap() {
+  window.form.setAdFormAddress(getCoordinats(false));
   window.pin.removePins();
-  window.card.removeCards();
-  window.utils.debounce(window.pin.renderPins(window.filter.filtering()));
+  window.card.removeCard();
+
+  const filteredData = window.filter.getFilterData(window.data.loadedAds);
+  window.utils.debounce(window.pin.renderPins(filteredData));
 }
 
 function onMapPinsClick(evt) {
   if (evt.button === 0) {
-    window.utils.debounce(changeMap(evt));
+    window.utils.debounce(onClickMap(evt));
   }
 }
 
 function onMapPinsKeydown(evt) {
   switch (evt.key) {
     case `Enter`:
-      window.utils.debounce(changeMap(evt));
+      window.utils.debounce(onClickMap(evt));
       break;
 
     case `Escape`:
       evt.preventDefault();
-      window.card.removeCards();
+      window.card.removeCard();
       break;
   }
 }
 
 function onMapFiltersChange() {
-  window.utils.debounce(window.pin.renderPins(window.filter.filtering()));
-}
-
-function onCardPopupCloseClick(evt) {
-  evt.target.removeEventListener(`click`, onCardPopupCloseClick);
-
-  window.card.removeCards();
+  const filteredData = window.filter.getFilterData(window.data.loadedAds);
+  window.utils.debounce(window.pin.renderPins(filteredData));
 }
 
 window.map = {
