@@ -68,11 +68,11 @@ function resetAdForm() {
   housingUploadPreview.innerHTML = ``;
 
   adForm.reset();
-  window.map.setMapInactiveMode();
+  window.map.deactivateMap();
   setFormInactiveMode();
 }
 
-function informSuccessUpload(message) {
+function onSuccessUpload(message) {
   window.modals.showDialogMessage(`success`, message);
   resetAdForm();
 }
@@ -82,7 +82,7 @@ function unloadAdForm(message) {
 }
 
 function uploadAdForm() {
-  window.network.upload(new FormData(adForm), informSuccessUpload, unloadAdForm);
+  window.network.upload(new FormData(adForm), onSuccessUpload, unloadAdForm);
 }
 
 function onButtonSubmitClick(evt) {

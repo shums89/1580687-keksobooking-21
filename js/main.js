@@ -51,7 +51,7 @@ function onMapPinMainMousedown(evt) {
     document.removeEventListener(`mouseup`, onMouseUp);
 
     if (map.matches(`.map--faded`)) {
-      window.map.setMapActiveMode();
+      window.map.activateMap();
       window.form.setFormActiveMode();
     } else {
       window.map.updateMap();
@@ -62,7 +62,7 @@ function onMapPinMainMousedown(evt) {
   document.addEventListener(`mouseup`, onMouseUp);
 }
 
-window.map.setMapInactiveMode();
+window.map.deactivateMap();
 window.form.setFormInactiveMode();
 
 mapPinMain.addEventListener(`mousedown`, onMapPinMainMousedown);

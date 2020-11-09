@@ -19,7 +19,7 @@ function getCoordinats(isCenter = true) {
   return `${x}, ${y}`;
 }
 
-function setMapInactiveMode() {
+function deactivateMap() {
   map.classList.add(`map--faded`);
   window.utils.setDisabled(mapFiltersHousings);
 
@@ -62,7 +62,7 @@ function loadAds() {
   window.network.load(saveLoadedAds, unloadAds);
 }
 
-function setMapActiveMode() {
+function activateMap() {
   map.classList.remove(`map--faded`);
   window.utils.setDisabled(mapFiltersHousings, false);
 
@@ -115,6 +115,6 @@ function onMapFiltersChange() {
 window.map = {
   getCoordinats,
   updateMap,
-  setMapInactiveMode,
-  setMapActiveMode
+  deactivateMap,
+  activateMap
 };
