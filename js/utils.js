@@ -1,103 +1,60 @@
 'use strict';
 
-(function () {
+const DEBOUNCE_INTERVAL = 500;
+const FILE_TYPES = [`gif`, `jpg`, `jpeg`, `png`];
 
-  const DEBOUNCE_INTERVAL = 500;
-  const FILE_TYPES = [`gif`, `jpg`, `jpeg`, `png`];
+// Склонение существительных
+function getWordEnding(number, words) {
+  const cases = [2, 0, 1, 1, 1, 2];
+  return words[(number % 100 > 4 && number % 100 < 20) ? 2 : cases[(number % 10 < 5) ? number % 10 : 5]];
+}
 
-  // Генерация случайного числа
-  function getRandomInteger(min, max) {
-    return Math.floor(min + Math.random() * (max + 1 - min));
-  }
+function setDisabled(collection, disabled = true) {
+  collection.forEach((element) => {
+    if (disabled) {
+      element.setAttribute(`disabled`, ``);
+    } else {
+      element.removeAttribute(`disabled`);
+    }
+  });
+}
 
-  // Получение случайного элемента массива
-  function getRandomElement(arr) {
-    return arr[getRandomInteger(0, arr.length - 1)];
-  }
+function removeElements(collection) {
+  collection.forEach((element) => {
+    element.remove();
+  });
+}
 
-  // Получение нового массива
-  function getCorrectOrderList(arr) {
-    return arr.filter(() => getRandomInteger(0, 1));
-  }
+function debounce(callback) {
+  let lastTimeout = null;
 
-  // Склонение существительных
-  function getEnding(number, words) {
-    const cases = [2, 0, 1, 1, 1, 2];
-    return words[(number % 100 > 4 && number % 100 < 20) ? 2 : cases[(number % 10 < 5) ? number % 10 : 5]];
-  }
-
-  // Настройка доступа
-  function setDisabled(collection, disabled = true) {
-    collection.forEach((element) => {
-      if (disabled) {
-        element.setAttribute(`disabled`, ``);
-      } else {
-        element.removeAttribute(`disabled`);
-      }
-    });
-  }
-
-  // Удалить элементы
-  function removeElements(collection) {
-    collection.forEach((element) => {
-      element.remove();
-    });
-  }
-
-  // Проверка интервала
-  function checkInterval(parameter, value) {
-    if (value < window.data.ADS_DATA[parameter].min) {
-      value = window.data.ADS_DATA[parameter].min;
-    } else if (value > window.data.ADS_DATA[parameter].max) {
-      value = window.data.ADS_DATA[parameter].max;
+  return function (...args) {
+    if (lastTimeout) {
+      window.clearTimeout(lastTimeout);
     }
 
-    return value;
-  }
-
-  function debounce(callback) {
-    let lastTimeout = null;
-
-    return function (...args) {
-      if (lastTimeout) {
-        window.clearTimeout(lastTimeout);
-      }
-
-      lastTimeout = window.setTimeout(function () {
-        callback(...args);
-      }, DEBOUNCE_INTERVAL);
-    };
-  }
-
-  function getPhotoSrc(fileChooser, callback) {
-    const reader = new FileReader();
-    const file = fileChooser.files[0];
-    const fileName = file.name.toLowerCase();
-
-    const matches = FILE_TYPES.some(function (it) {
-      return fileName.endsWith(it);
-    });
-
-    function onReaderLoad() {
-      callback(reader.result);
-    }
-
-    if (matches) {
-      reader.readAsDataURL(file);
-      reader.addEventListener(`load`, onReaderLoad);
-    }
-  }
-
-  window.utils = {
-    getRandomInteger,
-    getRandomElement,
-    getCorrectOrderList,
-    getEnding,
-    setDisabled,
-    removeElements,
-    checkInterval,
-    debounce,
-    getPhotoSrc
+    lastTimeout = window.setTimeout(function () {
+      callback(...args);
+    }, DEBOUNCE_INTERVAL);
   };
+}
 
-})();
+function getPhotoSrc(fileChooser, onSuccess) {
+  const file = fileChooser.files[0];
+  const fileName = file.name.toLowerCase();
+
+  if (FILE_TYPES.some((it) => fileName.endsWith(it))) {
+    const reader = new FileReader();
+
+    reader.readAsDataURL(file);
+    reader.addEventListener(`load`, () => onSuccess(reader.result));
+  }
+}
+
+window.utils = {
+  getWordEnding,
+  setDisabled,
+  removeElements,
+  debounce,
+  getPhotoSrc
+};
