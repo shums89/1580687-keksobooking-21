@@ -9,7 +9,7 @@ const mapFilters = map.querySelector(`.map__filters`);
 const mapFiltersHousings = mapFilters.querySelectorAll(`[id^="housing-"]`);
 
 // Получить координаты элемента
-function getCoordinats(isCenter = true) {
+function getCoordinates(isCenter = true) {
   const mapData = map.getBoundingClientRect();
   const mapPinMainData = mapPinMain.getBoundingClientRect();
 
@@ -30,7 +30,7 @@ function deactivateMap() {
   window.card.removeCard();
 
   mapPinMain.style = DEFAULT_COORDINATES_PIN_MAIN;
-  window.form.setAdFormAddress(getCoordinats(true));
+  window.form.setAdFormAddress(getCoordinates(true));
 
   mapPins.removeEventListener(`click`, onMapPinsClick);
   mapPins.removeEventListener(`keydown`, onMapPinsKeydown);
@@ -80,7 +80,7 @@ function onClickMap(evt) {
 }
 
 function updateMap() {
-  window.form.setAdFormAddress(getCoordinats(false));
+  window.form.setAdFormAddress(getCoordinates(false));
   window.pin.removePins();
   window.card.removeCard();
 
@@ -113,7 +113,7 @@ function onMapFiltersChange() {
 }
 
 window.map = {
-  getCoordinats,
+  getCoordinates,
   updateMap,
   deactivateMap,
   activateMap

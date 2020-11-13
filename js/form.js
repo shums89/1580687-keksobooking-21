@@ -36,45 +36,21 @@ const avatarUploadPreview = adForm.querySelector(`.ad-form-header__upload .ad-fo
 const housingUploadInput = adForm.querySelector(`.ad-form__upload input[type=file]`);
 const housingUploadPreview = adForm.querySelector(`.ad-form__photo`);
 
-function checkType() {
-  const typeValue = type.value;
-  const newValue = window.data.TYPE_HOUSING[typeValue].minPrice;
-
-  price.min = newValue;
-  price.placeholder = newValue;
-}
-
-function checkTime() {
-  const textValidityCapacity = (timeout.value === timein.value) ? `` : `Время выезда должно быть до ${timein.value}`;
-
-  timeout.setCustomValidity(textValidityCapacity);
-  timeout.reportValidity();
-}
-
-function checkRoomNumber() {
-  const roomNumberValue = roomNumber.value;
-  const capacityValue = capacity.value;
-
-  const textValidityCapacity = (CAPACITY_VALIDITY[roomNumberValue].values.includes(capacityValue)) ? `` : CAPACITY_VALIDITY[roomNumberValue].textError;
-
-  capacity.setCustomValidity(textValidityCapacity);
-  capacity.reportValidity();
-}
 
 function resetAdForm() {
+  window.map.deactivateMap();
+  deactivateAdForm();
+
   price.min = 0;
   price.placeholder = 0;
   avatarUploadPreview.src = DEFAULT_PHOTO;
   housingUploadPreview.innerHTML = ``;
-
   adForm.reset();
-  window.map.deactivateMap();
-  setFormInactiveMode();
 }
 
-function onSuccessUpload(message) {
-  window.modals.showDialogMessage(`success`, message);
+function onSuccessUpload() {
   resetAdForm();
+  window.modals.showDialogMessage(`success`, `Ваша заявка успешно отправлена`);
 }
 
 function unloadAdForm(message) {
@@ -86,9 +62,7 @@ function uploadAdForm() {
 }
 
 function onButtonSubmitClick(evt) {
-  checkType();
-  checkTime();
-  checkRoomNumber();
+  onChangeRoomNumber();
 
   if (adForm.checkValidity()) {
     evt.preventDefault();
@@ -119,33 +93,66 @@ function onHousingUploadChange() {
   window.utils.getPhotoSrc(housingUploadInput, renderHousingUploadPreview);
 }
 
+function onChangeType() {
+  const typeValue = type.value;
+  const newValue = window.data.TYPE_HOUSING[typeValue].minPrice;
+
+  price.min = newValue;
+  price.placeholder = newValue;
+}
+
+function onChangeTimein() {
+  timeout.value = timein.value;
+}
+
+function onChangeTimeout() {
+  timein.value = timeout.value;
+}
+
+function onChangeRoomNumber() {
+  const roomNumberValue = roomNumber.value;
+  const capacityValue = capacity.value;
+
+  const textValidityCapacity = (CAPACITY_VALIDITY[roomNumberValue].values.includes(capacityValue)) ? `` : CAPACITY_VALIDITY[roomNumberValue].textError;
+
+  capacity.setCustomValidity(textValidityCapacity);
+  capacity.reportValidity();
+}
+
 function setAdFormAddress(coordinats) {
   adForm.address.value = coordinats;
 }
 
-function setFormInactiveMode() {
+function deactivateAdForm() {
   adForm.classList.add(`ad-form--disabled`);
   window.utils.setDisabled(fieldsets);
 
   buttonSubmit.removeEventListener(`click`, onButtonSubmitClick);
   buttonReset.removeEventListener(`click`, onButtonResetClick);
+  type.removeEventListener(`change`, onChangeType);
+  timein.removeEventListener(`change`, onChangeTimein);
+  timeout.removeEventListener(`change`, onChangeTimeout);
+  roomNumber.removeEventListener(`change`, onChangeRoomNumber);
   avatarUploadInput.removeEventListener(`change`, onAvatarUploadChange);
   housingUploadInput.removeEventListener(`change`, onHousingUploadChange);
 }
 
-function setFormActiveMode() {
+function activateAdForm() {
   adForm.classList.remove(`ad-form--disabled`);
   window.utils.setDisabled(fieldsets, false);
 
   buttonSubmit.addEventListener(`click`, onButtonSubmitClick);
   buttonReset.addEventListener(`click`, onButtonResetClick);
+  type.addEventListener(`change`, onChangeType);
+  timein.addEventListener(`change`, onChangeTimein);
+  timeout.addEventListener(`change`, onChangeTimeout);
+  roomNumber.addEventListener(`change`, onChangeRoomNumber);
   avatarUploadInput.addEventListener(`change`, onAvatarUploadChange);
   housingUploadInput.addEventListener(`change`, onHousingUploadChange);
 }
 
 window.form = {
   setAdFormAddress,
-  setFormInactiveMode,
-  setFormActiveMode,
-  uploadAdForm
+  deactivateAdForm,
+  activateAdForm
 };

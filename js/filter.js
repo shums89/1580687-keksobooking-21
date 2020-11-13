@@ -24,7 +24,7 @@ const HOUSING_PRICE = {
 
 // Расчет кратчашего расстояния до метки (гипотенузы)
 function getDistance(data) {
-  const pinMainCoords = window.map.getCoordinats(false).split(`,`);
+  const pinMainCoords = window.map.getCoordinates(false).split(`,`);
 
   return Math.sqrt(Math.abs(Math.pow(pinMainCoords[0] - data.location.x, 2) + Math.pow(pinMainCoords[1] - data.location.y, 2))
   );
